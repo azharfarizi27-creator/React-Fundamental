@@ -5,11 +5,11 @@ function JobCard({ title, company, location, salary, type }) {
   return (
     <div className="job-card">
 
-      <span className="badge-job">{type}</span>
+      <span className="inline-block bg-amber-500 text-white rounded-full">{type}</span>
 
-      <h3>{title}</h3>
+      <h3 className="bg-lightblue text-dark p-4 shadow-md">{title}</h3>
 
-      <p>{company}</p>
+      <p className="font-semibold mask-b-from-neutral-50">{company}</p>
 
       <div className="info">
         <FaMapMarkerAlt />
@@ -18,7 +18,7 @@ function JobCard({ title, company, location, salary, type }) {
 
       <div className="info">
         <FaMoneyBillWave />
-        <span>{salary}</span>
+        <span className=" text-green-600">{salary}</span>
       </div>
 
       <button>Apply Now</button>
