@@ -176,10 +176,10 @@ export const MenuListPage = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200">
         <div>
-          <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2.5">
-            <Coffee className="w-6 h-6 text-amber-600" />
+          <div className="w-8 h-1 bg-[#fbb710] mb-2" />
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-950 tracking-tight flex items-center gap-2.5">
             <span>Katalog Menu Café</span>
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 mt-1">
@@ -193,8 +193,9 @@ export const MenuListPage = () => {
             size="md"
             onClick={handleOpenCreateModal}
             icon={<Plus className="w-4 h-4" />}
+            className="uppercase tracking-wider font-extrabold text-xs"
           >
-            Tambah Menu
+            + Tambah Menu Baru
           </Button>
         )}
       </div>

@@ -11,9 +11,11 @@ import {
   Grid,
   Clock,
   ArrowUpDown,
+  Download,
 } from 'lucide-react';
 import { salesService } from '../../services/salesService';
 import { formatRupiah, formatDateTime } from '../../utils/formatters';
+import { useToast } from '../../context/ToastContext';
 import SearchInput from '../../components/common/SearchInput';
 import StatCard from '../../components/common/StatCard';
 import OrderStatusBadge from '../../components/order/OrderStatusBadge';
@@ -25,6 +27,7 @@ import Button from '../../components/common/Button';
 
 export const SalesHistoryPage = () => {
   const navigate = useNavigate();
+  const { success } = useToast();
 
   const [orders, setOrders] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -92,17 +95,76 @@ export const SalesHistoryPage = () => {
     setPagination((prev) => ({ ...prev, pageNumber: 1 }));
   };
 
+  const handleExportCSV = () => {
+    if (orders.length === 0) return;
+
+    const headers = [
+      'No',
+      'No. Order',
+      'Tanggal & Waktu',
+      'Tipe Pesanan',
+      'Nomor Meja',
+      'Kasir',
+      'Metode Pembayaran',
+      'Subtotal (Rp)',
+      'Pajak PB1 (Rp)',
+      'Diskon (Rp)',
+      'Total Akhir (Rp)',
+      'Status',
+    ];
+
+    const rows = orders.map((o, idx) => [
+      idx + 1,
+      `"${o.orderNumber}"`,
+      `"${new Date(o.createdAt).toLocaleString('id-ID')}"`,
+      `"${o.orderType}"`,
+      `"${o.tableNumber || '-'}"`,
+      `"${o.userName || 'Staff'}"`,
+      `"${o.paymentMethod || 'Cash'}"`,
+      o.subtotal || o.totalAmount,
+      o.tax || 0,
+      o.discountAmount || 0,
+      o.totalAmount,
+      `"${o.status}"`,
+    ]);
+
+    const csvString = [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Caffera_Sales_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    success('Laporan penjualan (.csv) berhasil diunduh!');
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2.5">
-          <Receipt className="w-6 h-6 text-amber-600" />
-          <span>Laporan Riwayat Transaksi & Penjualan</span>
-        </h1>
-        <p className="text-xs sm:text-sm text-stone-500 mt-1">
-          Rekapitulasi seluruh transaksi penjualan café, filter periode tanggal, dan audit pendapatan.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200">
+        <div>
+          <div className="w-8 h-1 bg-[#fbb710] mb-2" />
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-950 tracking-tight flex items-center gap-2.5">
+            <span>Laporan Riwayat Transaksi & Penjualan</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-stone-500 mt-1">
+            Rekapitulasi seluruh transaksi penjualan café, filter periode tanggal, dan audit omset harian.
+          </p>
+        </div>
+
+        {orders.length > 0 && (
+          <Button
+            variant="outline"
+            size="md"
+            onClick={handleExportCSV}
+            icon={<Download className="w-4 h-4 text-stone-900" />}
+            className="font-black uppercase tracking-wider text-xs bg-white hover:bg-neutral-100"
+          >
+            Ekspor Laporan CSV
+          </Button>
+        )}
       </div>
 
       {/* Summary Cards Row */}

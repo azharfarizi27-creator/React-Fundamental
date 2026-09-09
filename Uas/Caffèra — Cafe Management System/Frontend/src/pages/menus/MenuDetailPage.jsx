@@ -187,17 +187,17 @@ export const MenuDetailPage = () => {
                 size="lg"
                 disabled={!menu.isAvailable}
                 onClick={handleAddToCart}
-                className="w-full shadow-lg shadow-amber-600/20"
+                className="w-full uppercase tracking-wider font-black text-xs shadow-xs"
                 icon={<ShoppingBag className="w-4 h-4" />}
               >
-                {menu.isAvailable ? 'Tambah ke Pesanan Aktif (POS)' : 'Stok Sedang Habis'}
+                {menu.isAvailable ? '+ Tambah ke Pesanan Aktif (POS)' : 'Stok Sedang Habis'}
               </Button>
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleToggleAvailability}
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                  className={`flex-1 py-2 text-xs font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
                     menu.isAvailable
                       ? 'text-rose-700 bg-rose-50 border-rose-200 hover:bg-rose-100'
                       : 'text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100'

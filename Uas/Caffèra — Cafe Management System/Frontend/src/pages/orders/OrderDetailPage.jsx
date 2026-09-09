@@ -104,11 +104,12 @@ export const OrderDetailPage = () => {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="md"
             onClick={() => setIsReceiptOpen(true)}
-            icon={<Printer className="w-4 h-4" />}
+            icon={<Printer className="w-4 h-4 text-stone-900" />}
+            className="uppercase tracking-wider font-extrabold text-xs"
           >
-            Lihat Struk Transaksi
+            Cetak Struk Transaksi
           </Button>
         </div>
       </div>

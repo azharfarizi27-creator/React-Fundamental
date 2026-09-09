@@ -16,8 +16,10 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // ========================================================
-// 0. CONSOLE LOGGING CONFIGURATION
+// 0. GLOBAL COMPATIBILITY & CONSOLE LOGGING
 // ========================================================
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 builder.Logging.ClearProviders();
 builder.Logging.AddSimpleConsole(options =>
 {
@@ -27,10 +29,31 @@ builder.Logging.AddSimpleConsole(options =>
 });
 
 // ========================================================
-// 1. DATABASE CONTEXT
+// 1. DATABASE CONTEXT (PostgreSQL & SQL Server Hybrid)
 // ========================================================
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "";
+var isPostgreSql = connectionString.Contains("Host=", StringComparison.OrdinalIgnoreCase) ||
+                   connectionString.Contains("Port=", StringComparison.OrdinalIgnoreCase) ||
+                   connectionString.Contains("postgres://", StringComparison.OrdinalIgnoreCase) ||
+                   connectionString.Contains("postgresql://", StringComparison.OrdinalIgnoreCase) ||
+                   connectionString.Contains("supabase", StringComparison.OrdinalIgnoreCase) ||
+                   connectionString.Contains("neon.tech", StringComparison.OrdinalIgnoreCase) ||
+                   connectionString.Contains("aivencloud", StringComparison.OrdinalIgnoreCase) ||
+                   connectionString.Contains("render.com", StringComparison.OrdinalIgnoreCase) ||
+                   connectionString.Contains("SSL Mode=", StringComparison.OrdinalIgnoreCase) ||
+                   builder.Configuration["DatabaseProvider"]?.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase) == true;
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    if (isPostgreSql)
+    {
+        options.UseNpgsql(connectionString);
+    }
+    else
+    {
+        options.UseSqlServer(connectionString);
+    }
+});
 
 // ========================================================
 // 2. JWT AUTHENTICATION (Security Principles #3 & #4)
@@ -120,7 +143,24 @@ builder.Services.AddScoped<ISalesService, SalesService>();
 // ========================================================
 // 6. CONTROLLERS & SWAGGER WITH JWT SUPPORT
 // ========================================================
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(e => e.Value?.Errors.Count > 0)
+                .SelectMany(e => e.Value!.Errors.Select(x => string.IsNullOrWhiteSpace(x.ErrorMessage) ? "Field bernilai tidak valid." : x.ErrorMessage))
+                .ToList();
+
+            var response = Caffera.Backend.DTOs.Common.ApiResponse<object>.FailResult(
+                "Validasi data gagal. Silakan periksa kembali data yang dimasukkan.",
+                errors
+            );
+
+            return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(response);
+        };
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -171,7 +211,9 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 // ========================================================
 // 8. HTTP REQUEST PIPELINE
 // ========================================================
-if (app.Environment.IsDevelopment())
+// Enable Swagger in Development and Production (dapat dinonaktifkan via appsettings jika diinginkan)
+var enableSwagger = app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("EnableSwagger", true);
+if (enableSwagger)
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
@@ -183,7 +225,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontend");
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Dinonaktifkan agar kompatibel dengan HTTP & HTTPS di hosting MonsterASP
 
 app.UseRateLimiter();
 
@@ -191,6 +233,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Auto-redirect dari root (/) ke (/swagger) agar tidak muncul 404
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 // ========================================================
 // 9. DATABASE INITIALIZATION & STARTUP

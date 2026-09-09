@@ -50,40 +50,40 @@ export const DashboardPage = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-stone-900 via-stone-850 to-amber-950 p-6 sm:p-8 text-white shadow-xl border border-stone-800">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Sistem Operasional Aktif</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Halo, {user?.name || 'Staff Caffèra'}! ☕
+      {/* Welcome Banner (Amado Clean Studio Style) */}
+      <div className="bg-white border border-stone-200/90 p-6 sm:p-8 relative overflow-hidden shadow-xs">
+        <div className="w-12 h-1.5 bg-[#fbb710] mb-4" />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-1.5">
+            <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest">
+              Live Operations & Management
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-950 tracking-tight">
+              Selamat Datang, {user?.name || 'Staff Caffèra'}!
             </h1>
-            <p className="text-xs sm:text-sm text-stone-300 max-w-xl">
-              Pantau transaksi café secara real-time, buat pesanan baru dari kasir, atau kelola ketersediaan menu hari ini.
+            <p className="text-xs sm:text-sm text-stone-500 max-w-xl leading-relaxed">
+              Pantau transaksi café secara real-time, proses pesanan kasir POS baru, dan kelola ketersediaan stok menu hari ini.
             </p>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
             <Button
-              variant="secondary"
+              variant="outline"
               size="md"
               onClick={() => navigate('/menus')}
               icon={<UtensilsCrossed className="w-4 h-4" />}
+              className="uppercase tracking-wider font-extrabold text-xs"
             >
-              Lihat Menu
+              Katalog Menu
             </Button>
             <Button
               variant="primary"
               size="md"
               onClick={() => navigate('/orders/create')}
               icon={<ShoppingBag className="w-4 h-4" />}
-              className="shadow-lg shadow-amber-600/30"
+              className="uppercase tracking-wider font-extrabold text-xs"
             >
-              Buat Order POS
+              + Buat Order POS
             </Button>
           </div>
         </div>
@@ -95,8 +95,8 @@ export const DashboardPage = () => {
           title="Pendapatan Hari Ini"
           value={formatRupiah(stats?.todayRevenue || 0)}
           subtitle="Total omset dari order aktif & selesai"
-          icon={<DollarSign className="w-6 h-6" />}
-          iconBg="bg-amber-50 text-amber-700 border border-amber-200"
+          icon={<DollarSign className="w-6 h-6 text-stone-950" />}
+          iconBg="bg-[#fbb710]/20 border border-[#fbb710]/40"
           trend="+14.2%"
           trendType="up"
         />
@@ -105,8 +105,8 @@ export const DashboardPage = () => {
           title="Total Pesanan Hari Ini"
           value={`${stats?.todayOrdersCount || 0} Order`}
           subtitle="Transaksi masuk hari ini"
-          icon={<ShoppingBag className="w-6 h-6" />}
-          iconBg="bg-blue-50 text-blue-700 border border-blue-200"
+          icon={<ShoppingBag className="w-6 h-6 text-stone-950" />}
+          iconBg="bg-stone-100 border border-stone-200"
           trend="+8.5%"
           trendType="up"
         />
@@ -115,36 +115,37 @@ export const DashboardPage = () => {
           title="Total Menu Aktif"
           value={`${stats?.totalMenuItems || 0} Menu`}
           subtitle="Katalog makanan & minuman"
-          icon={<Coffee className="w-6 h-6" />}
-          iconBg="bg-purple-50 text-purple-700 border border-purple-200"
+          icon={<Coffee className="w-6 h-6 text-stone-950" />}
+          iconBg="bg-[#fbb710]/15 border border-[#fbb710]/30"
         />
 
         <StatCard
           title="Status Meja"
           value={`${stats?.availableTablesCount || 0} Kosong`}
           subtitle={`${stats?.occupiedTablesCount || 0} Meja sedang terisi`}
-          icon={<Grid className="w-6 h-6" />}
-          iconBg="bg-emerald-50 text-emerald-700 border border-emerald-200"
+          icon={<Grid className="w-6 h-6 text-stone-950" />}
+          iconBg="bg-stone-100 border border-stone-200"
         />
       </div>
 
       {/* 2-Column Analytics Section: 7-Day Chart & Top Menus */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 7-Day Revenue Trend Chart */}
-        <Card className="lg:col-span-2 flex flex-col justify-between">
+        <div className="lg:col-span-2 bg-white border border-stone-200/90 p-6 flex flex-col justify-between shadow-xs">
           <div>
+            <div className="w-8 h-1 bg-[#fbb710] mb-3" />
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="font-bold text-base text-stone-900 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-amber-600" />
+                <h3 className="font-black text-base text-stone-950 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-[#e59e07]" />
                   <span>Tren Pendapatan 7 Hari Terakhir</span>
                 </h3>
                 <p className="text-xs text-stone-500 mt-0.5">
                   Grafik omset harian café dalam seminggu
                 </p>
               </div>
-              <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
-                Weekly Overview
+              <span className="text-[11px] font-black uppercase tracking-wider text-stone-900 bg-[#fbb710]/20 px-3 py-1 border border-[#fbb710]/40">
+                Weekly Report
               </span>
             </div>
 
@@ -158,18 +159,18 @@ export const DashboardPage = () => {
                     className="flex-1 flex flex-col items-center gap-2 h-full justify-end group cursor-pointer"
                   >
                     {/* Tooltip on hover */}
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold bg-stone-900 text-white px-2 py-1 rounded-md shadow-md pointer-events-none mb-1 text-center whitespace-nowrap">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold bg-stone-950 text-white px-2 py-1 shadow-md pointer-events-none mb-1 text-center whitespace-nowrap">
                       {formatRupiah(day.totalRevenue)}
                     </div>
 
                     {/* Bar */}
                     <div
-                      className="w-full max-w-[42px] bg-gradient-to-t from-amber-600 to-amber-400 group-hover:from-amber-500 group-hover:to-amber-300 rounded-t-xl transition-all duration-300 shadow-sm shadow-amber-600/20"
+                      className="w-full max-w-[42px] bg-[#fbb710] group-hover:bg-[#e59e07] transition-all duration-300 shadow-xs"
                       style={{ height: `${heightPercent}%` }}
                     />
 
                     {/* Label */}
-                    <span className="text-[11px] font-semibold text-stone-500 group-hover:text-stone-900">
+                    <span className="text-[11px] font-bold text-stone-500 group-hover:text-stone-950">
                       {day.label}
                     </span>
                   </div>
@@ -182,53 +183,52 @@ export const DashboardPage = () => {
             <span>Rata-rata Harian: ~Rp 450.000</span>
             <button
               onClick={() => navigate('/sales')}
-              className="font-bold text-amber-700 hover:text-amber-800 inline-flex items-center gap-1 cursor-pointer"
+              className="font-bold text-stone-950 hover:text-[#e59e07] inline-flex items-center gap-1 cursor-pointer transition-colors"
             >
               <span>Lihat Detail Laporan</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
-        </Card>
+        </div>
 
         {/* Top Selling Menus */}
-        <Card className="flex flex-col justify-between">
+        <div className="bg-white border border-stone-200/90 p-6 flex flex-col justify-between shadow-xs">
           <div>
+            <div className="w-8 h-1 bg-[#fbb710] mb-3" />
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-base text-stone-900">Menu Terlaris</h3>
-              <span className="text-[11px] font-bold text-stone-400 uppercase">Top 4</span>
+              <h3 className="font-black text-base text-stone-950">Menu Terlaris</h3>
+              <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider">Top 4</span>
             </div>
 
-            <div className="space-y-3.5">
+            <div className="space-y-3">
               {(stats?.topSellingMenus || []).map((menu, idx) => (
                 <div
                   key={menu.menuId}
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-stone-50 hover:bg-amber-50/50 border border-stone-100 transition-colors"
+                  className="flex items-center justify-between p-2.5 bg-stone-50 hover:bg-[#fbb710]/10 border border-stone-100 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <span
-                      className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black ${
+                      className={`w-6 h-6 flex items-center justify-center text-xs font-black ${
                         idx === 0
-                          ? 'bg-amber-500 text-white'
+                          ? 'bg-[#fbb710] text-stone-950'
                           : idx === 1
-                          ? 'bg-stone-300 text-stone-800'
-                          : idx === 2
-                          ? 'bg-amber-700 text-white'
-                          : 'bg-stone-200 text-stone-600'
+                          ? 'bg-stone-900 text-white'
+                          : 'bg-stone-200 text-stone-700'
                       }`}
                     >
                       {idx + 1}
                     </span>
                     <div>
-                      <h4 className="text-xs font-bold text-stone-900 line-clamp-1">
+                      <h4 className="text-xs font-bold text-stone-950 line-clamp-1">
                         {menu.menuName}
                       </h4>
                       <p className="text-[10px] text-stone-500">
-                        Terjual: <span className="font-bold text-stone-700">{menu.totalQuantitySold} porsi</span>
+                        Terjual: <span className="font-bold text-stone-800">{menu.totalQuantitySold} porsi</span>
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-xs font-bold text-amber-700 shrink-0">
+                  <p className="text-xs font-black text-stone-950 shrink-0">
                     {formatRupiah(menu.totalRevenue)}
                   </p>
                 </div>
@@ -238,18 +238,19 @@ export const DashboardPage = () => {
 
           <button
             onClick={() => navigate('/menus')}
-            className="w-full mt-4 py-2 text-center text-xs font-bold text-stone-600 hover:text-amber-700 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer"
+            className="w-full mt-4 py-2.5 text-center text-xs font-bold uppercase tracking-wider text-stone-900 hover:text-white bg-stone-100 hover:bg-stone-950 transition-colors cursor-pointer"
           >
             Kelola Seluruh Menu
           </button>
-        </Card>
+        </div>
       </div>
 
       {/* Recent Orders Table */}
-      <Card>
+      <div className="bg-white border border-stone-200/90 p-6 shadow-xs">
+        <div className="w-8 h-1 bg-[#fbb710] mb-3" />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-stone-100">
           <div>
-            <h3 className="font-bold text-base text-stone-900">Pesanan Terbaru</h3>
+            <h3 className="font-black text-base text-stone-950">Pesanan Terbaru</h3>
             <p className="text-xs text-stone-500">Daftar transaksi yang baru saja masuk ke sistem</p>
           </div>
           <Button
@@ -257,6 +258,7 @@ export const DashboardPage = () => {
             size="sm"
             onClick={() => navigate('/orders')}
             iconRight={<ArrowRight className="w-3.5 h-3.5" />}
+            className="text-xs font-bold uppercase tracking-wider"
           >
             Semua Pesanan
           </Button>
@@ -266,7 +268,7 @@ export const DashboardPage = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-stone-200/80 text-stone-400 font-bold uppercase tracking-wider">
+              <tr className="border-b border-stone-200 text-stone-400 font-bold uppercase tracking-wider">
                 <th className="py-3 px-3">No. Order</th>
                 <th className="py-3 px-3">Tipe / Meja</th>
                 <th className="py-3 px-3">Kasir</th>
@@ -278,26 +280,26 @@ export const DashboardPage = () => {
             </thead>
             <tbody className="divide-y divide-stone-100 text-stone-700">
               {(stats?.recentOrders || []).map((order) => (
-                <tr key={order.id} className="hover:bg-amber-50/40 transition-colors">
-                  <td className="py-3 px-3 font-bold text-stone-900 font-mono">
+                <tr key={order.id} className="hover:bg-[#fbb710]/5 transition-colors">
+                  <td className="py-3 px-3 font-bold text-stone-950 font-mono">
                     {order.orderNumber}
                   </td>
                   <td className="py-3 px-3 font-medium">
                     {order.orderType === 'DineIn' ? (
-                      <span className="inline-flex items-center gap-1 text-stone-800">
-                        <Grid className="w-3 h-3 text-amber-600" />
+                      <span className="inline-flex items-center gap-1 text-stone-900 font-bold">
+                        <Grid className="w-3 h-3 text-[#e59e07]" />
                         Meja #{order.tableNumber}
                       </span>
                     ) : (
-                      <span className="text-stone-500">Take Away</span>
+                      <span className="text-stone-500 font-bold">Take Away</span>
                     )}
                   </td>
-                  <td className="py-3 px-3">{order.userName || 'Staff'}</td>
+                  <td className="py-3 px-3 font-medium">{order.userName || 'Staff'}</td>
                   <td className="py-3 px-3 text-stone-500 flex items-center gap-1 mt-1">
                     <Clock className="w-3 h-3" />
                     <span>{formatDateTime(order.createdAt)}</span>
                   </td>
-                  <td className="py-3 px-3 font-bold text-amber-800">
+                  <td className="py-3 px-3 font-black text-stone-950">
                     {formatRupiah(order.totalAmount)}
                   </td>
                   <td className="py-3 px-3">
@@ -306,7 +308,7 @@ export const DashboardPage = () => {
                   <td className="py-3 px-3 text-right">
                     <button
                       onClick={() => navigate(`/orders/${order.id}`)}
-                      className="p-1.5 rounded-lg text-stone-500 hover:text-amber-700 hover:bg-amber-100/50 transition-colors inline-flex items-center gap-1 font-bold text-[11px] cursor-pointer"
+                      className="p-1.5 text-stone-600 hover:text-stone-950 hover:bg-stone-100 transition-colors inline-flex items-center gap-1 font-bold text-[11px] cursor-pointer"
                     >
                       <Eye className="w-3.5 h-3.5" />
                       <span>Detail</span>
@@ -317,7 +319,7 @@ export const DashboardPage = () => {
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

@@ -15,46 +15,44 @@ export const authService = {
         localStorage.setItem('caffera_user', JSON.stringify(user));
         return { success: true, data: response.data.data };
       }
-    } catch (err) {
-      console.warn('API /auth/login unavailable, using Mock Auth:', err.message);
-    }
-
-    // Mock Fallback
-    const users = getStorageData(STORAGE_KEYS.USERS);
-    const matchedUser = users.find(
-      (u) => u.email.toLowerCase() === credentials.email.toLowerCase()
-    );
-
-    if (matchedUser) {
-      const mockToken = `mock_jwt_token_${matchedUser.role}_${Date.now()}`;
-      const authData = {
-        token: mockToken,
-        expiration: new Date(Date.now() + 24 * 3600000).toISOString(),
-        user: matchedUser,
+      return {
+        success: false,
+        message: response.data?.message || 'Email atau password salah',
       };
-      localStorage.setItem('caffera_token', mockToken);
-      localStorage.setItem('caffera_user', JSON.stringify(matchedUser));
-      return { success: true, data: authData };
-    }
+    } catch (err) {
+      // If the backend is reached and returns an error (400, 401, 403, etc.)
+      if (err.response) {
+        return {
+          success: false,
+          message: err.response.data?.message || 'Email atau password tidak valid',
+        };
+      }
 
-    // Default to admin if email not found during demo
-    const defaultUser = {
-      id: 99,
-      name: credentials.email.split('@')[0] || 'Staff User',
-      email: credentials.email,
-      role: credentials.email.includes('cashier') ? 'Cashier' : 'Admin',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      createdAt: new Date().toISOString(),
-    };
-    const mockToken = `mock_jwt_token_${defaultUser.role}_${Date.now()}`;
-    const authData = {
-      token: mockToken,
-      expiration: new Date(Date.now() + 24 * 3600000).toISOString(),
-      user: defaultUser,
-    };
-    localStorage.setItem('caffera_token', mockToken);
-    localStorage.setItem('caffera_user', JSON.stringify(defaultUser));
-    return { success: true, data: authData };
+      console.warn('Backend offline / unreachable, fallback to local:', err.message);
+
+      // Offline mode fallback: Only allowed if server is completely unreachable and credentials match
+      const users = getStorageData(STORAGE_KEYS.USERS);
+      const matchedUser = users.find(
+        (u) => u.email.toLowerCase() === credentials.email.toLowerCase()
+      );
+
+      if (matchedUser && (credentials.password === 'admin123' || credentials.password === 'cashier123')) {
+        const mockToken = `mock_jwt_token_${matchedUser.role}_${Date.now()}`;
+        const authData = {
+          token: mockToken,
+          expiration: new Date(Date.now() + 24 * 3600000).toISOString(),
+          user: matchedUser,
+        };
+        localStorage.setItem('caffera_token', mockToken);
+        localStorage.setItem('caffera_user', JSON.stringify(matchedUser));
+        return { success: true, data: authData };
+      }
+
+      return {
+        success: false,
+        message: 'Gagal menghubungi server backend. Periksa koneksi internet Anda.',
+      };
+    }
   },
 
   /**

@@ -85,16 +85,38 @@ export const OrderReceiptModal = ({ isOpen, onClose, order }) => {
           <div className="space-y-1 text-[11px] border-b border-dashed border-stone-300 pb-3">
             <div className="flex justify-between">
               <span className="text-stone-500">Subtotal:</span>
-              <span>{formatRupiah(subtotal)}</span>
+              <span>{formatRupiah(order.subtotal || subtotal)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-stone-500">PB1 Restoran (10%):</span>
-              <span>{formatRupiah(tax)}</span>
+              <span>{formatRupiah(order.tax !== undefined ? order.tax : tax)}</span>
             </div>
-            <div className="flex justify-between text-sm font-bold pt-1 text-stone-900">
-              <span>TOTAL:</span>
+            {order.discountAmount > 0 && (
+              <div className="flex justify-between text-stone-700 font-bold">
+                <span>Diskon ({order.discountCode || 'Promo'}):</span>
+                <span>-{formatRupiah(order.discountAmount)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-sm font-bold pt-1 text-stone-900 border-t border-dashed border-stone-200">
+              <span>TOTAL BAYAR:</span>
               <span>{formatRupiah(order.totalAmount || subtotal + tax)}</span>
             </div>
+            <div className="flex justify-between text-[11px] pt-1 text-stone-600">
+              <span>Metode Bayar:</span>
+              <span className="font-bold uppercase">{order.paymentMethod || 'Tunai (Cash)'}</span>
+            </div>
+            {order.cashReceived && (
+              <>
+                <div className="flex justify-between text-[11px] text-stone-500">
+                  <span>Uang Diterima:</span>
+                  <span>{formatRupiah(order.cashReceived)}</span>
+                </div>
+                <div className="flex justify-between text-[11px] text-stone-500">
+                  <span>Kembalian:</span>
+                  <span>{formatRupiah(order.cashChange || 0)}</span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Footer Note */}

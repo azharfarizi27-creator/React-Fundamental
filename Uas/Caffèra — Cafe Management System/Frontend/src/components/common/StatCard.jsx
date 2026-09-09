@@ -13,12 +13,14 @@ export const StatCard = ({
 }) => {
   return (
     <Card hoverEffect className={`relative overflow-hidden ${className}`}>
+      {/* Top Accent Line like Amado */}
+      <div className="w-8 h-1 bg-[#fbb710] mb-3 rounded-full" />
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
             {title}
           </p>
-          <h3 className="text-2xl font-bold text-stone-900 mt-1.5 font-sans tracking-tight">
+          <h3 className="text-2xl font-black text-stone-950 mt-1 font-sans tracking-tight">
             {value}
           </h3>
           {subtitle && (

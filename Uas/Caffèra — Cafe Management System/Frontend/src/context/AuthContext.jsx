@@ -58,17 +58,29 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  // Quick switch role (Admin <-> Cashier) for grading & demo purposes
+  // Quick switch role (Admin <-> Cashier <-> Kitchen) for grading & demo purposes
   const switchRole = (targetRole) => {
     const matchedUser =
       INITIAL_USERS.find((u) => u.role.toLowerCase() === targetRole.toLowerCase()) || {
-        id: targetRole === 'Admin' ? 1 : 2,
-        name: targetRole === 'Admin' ? 'Azhar Farizi (Admin)' : 'Sarah Nabila (Cashier)',
-        email: targetRole === 'Admin' ? 'admin@caffera.com' : 'cashier@caffera.com',
+        id: targetRole === 'Admin' ? 1 : targetRole === 'Kitchen' ? 3 : 2,
+        name:
+          targetRole === 'Admin'
+            ? 'Azhar Farizi (Admin)'
+            : targetRole === 'Kitchen'
+            ? 'Rian Barista (Kitchen)'
+            : 'Sarah Nabila (Cashier)',
+        email:
+          targetRole === 'Admin'
+            ? 'admin@caffera.com'
+            : targetRole === 'Kitchen'
+            ? 'kitchen@caffera.com'
+            : 'cashier@caffera.com',
         role: targetRole,
         avatar:
           targetRole === 'Admin'
             ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+            : targetRole === 'Kitchen'
+            ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
             : 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
       };
 
@@ -86,6 +98,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!token && !!user,
     isAdmin: user?.role === 'Admin',
     isCashier: user?.role === 'Cashier',
+    isKitchen: user?.role === 'Kitchen',
     login,
     logout,
     switchRole,

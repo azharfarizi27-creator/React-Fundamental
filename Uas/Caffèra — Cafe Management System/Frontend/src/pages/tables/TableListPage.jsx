@@ -7,6 +7,7 @@ import { useOrder } from '../../context/OrderContext';
 import { useToast } from '../../context/ToastContext';
 import TableCard from '../../components/table/TableCard';
 import TableStatusModal from '../../components/table/TableStatusModal';
+import TableQrModal from '../../components/table/TableQrModal';
 import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
 import EmptyState from '../../components/common/EmptyState';
@@ -20,6 +21,9 @@ export const TableListPage = () => {
   const [tables, setTables] = useState([]);
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
+
+  // QR Code Modal State
+  const [qrModalTable, setQrModalTable] = useState(null);
 
   // Status Change Modal
   const [statusModalTable, setStatusModalTable] = useState(null);
@@ -135,10 +139,10 @@ export const TableListPage = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200">
         <div>
-          <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2.5">
-            <Grid className="w-6 h-6 text-amber-600" />
+          <div className="w-8 h-1 bg-[#fbb710] mb-2" />
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-950 tracking-tight flex items-center gap-2.5">
             <span>Manajemen Meja Café</span>
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 mt-1">
@@ -152,20 +156,21 @@ export const TableListPage = () => {
             size="md"
             onClick={handleOpenAddTable}
             icon={<Plus className="w-4 h-4" />}
+            className="uppercase tracking-wider font-extrabold text-xs"
           >
-            Tambah Meja
+            + Tambah Meja Baru
           </Button>
         )}
       </div>
 
       {/* Filter Status Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         <button
           onClick={() => setSelectedStatusFilter('all')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+          className={`px-4 py-2 text-xs font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer ${
             selectedStatusFilter === 'all'
-              ? 'bg-stone-900 text-white shadow-md'
-              : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
+              ? 'bg-[#fbb710] text-stone-950 shadow-xs'
+              : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
           }`}
         >
           Semua Meja ({totalCount})
@@ -173,10 +178,10 @@ export const TableListPage = () => {
 
         <button
           onClick={() => setSelectedStatusFilter('Available')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+          className={`px-4 py-2 text-xs font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
             selectedStatusFilter === 'Available'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-              : 'bg-white border border-stone-200 text-emerald-700 hover:bg-emerald-50'
+              ? 'bg-[#fbb710] text-stone-950 shadow-xs'
+              : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
           }`}
         >
           <CheckCircle className="w-3.5 h-3.5" />
@@ -185,10 +190,10 @@ export const TableListPage = () => {
 
         <button
           onClick={() => setSelectedStatusFilter('Occupied')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+          className={`px-4 py-2 text-xs font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
             selectedStatusFilter === 'Occupied'
-              ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20'
-              : 'bg-white border border-stone-200 text-amber-700 hover:bg-amber-50'
+              ? 'bg-stone-950 text-white shadow-xs'
+              : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
           }`}
         >
           <Clock className="w-3.5 h-3.5" />
@@ -197,10 +202,10 @@ export const TableListPage = () => {
 
         <button
           onClick={() => setSelectedStatusFilter('Reserved')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+          className={`px-4 py-2 text-xs font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
             selectedStatusFilter === 'Reserved'
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-              : 'bg-white border border-stone-200 text-indigo-700 hover:bg-indigo-50'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
           }`}
         >
           <AlertCircle className="w-3.5 h-3.5" />
@@ -229,6 +234,7 @@ export const TableListPage = () => {
               table={table}
               isAdmin={isAdmin}
               onSelectStatus={(t) => setStatusModalTable(t)}
+              onViewQr={(t) => setQrModalTable(t)}
               onCreateOrder={handleCreateOrderForTable}
               onEdit={handleOpenEditTable}
               onDelete={(t) => setTableToDelete(t)}
@@ -236,6 +242,13 @@ export const TableListPage = () => {
           ))}
         </div>
       )}
+
+      {/* Table Self-Order QR Modal */}
+      <TableQrModal
+        isOpen={!!qrModalTable}
+        onClose={() => setQrModalTable(null)}
+        table={qrModalTable}
+      />
 
       {/* Quick Status Modal */}
       <TableStatusModal

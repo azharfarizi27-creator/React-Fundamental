@@ -152,16 +152,28 @@ export const orderService = {
       };
     });
 
+    const tax = dto.tax !== undefined ? Number(dto.tax) : Math.round(calculatedTotal * 0.1);
+    const discountAmount = dto.discountAmount ? Number(dto.discountAmount) : 0;
+    const finalTotal = dto.totalAmount !== undefined ? Number(dto.totalAmount) : Math.max(0, calculatedTotal + tax - discountAmount);
+
     const newOrder = {
       id: newId,
       orderNumber,
       userId: currentUser.id,
       userName: currentUser.name,
+      customerName: dto.customerName || null,
       tableId: dto.tableId ? Number(dto.tableId) : null,
       tableNumber: table ? table.number : null,
       orderType: dto.orderType || 'DineIn',
       status: 'Pending',
-      totalAmount: calculatedTotal,
+      subtotal: calculatedTotal,
+      tax,
+      discountAmount,
+      discountCode: dto.discountCode || null,
+      totalAmount: finalTotal,
+      paymentMethod: dto.paymentMethod || 'Cash',
+      cashReceived: dto.cashReceived || null,
+      cashChange: dto.cashChange || null,
       createdAt: new Date().toISOString(),
       items: orderItems,
     };

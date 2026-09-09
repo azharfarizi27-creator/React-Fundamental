@@ -1,12 +1,13 @@
 import React from 'react';
 
 const variants = {
-  primary: 'bg-amber-600 hover:bg-amber-700 text-white shadow-sm shadow-amber-600/20 active:bg-amber-800',
-  secondary: 'bg-stone-800 hover:bg-stone-700 text-stone-100 border border-stone-700 active:bg-stone-900',
-  outline: 'bg-transparent hover:bg-stone-100 text-stone-700 border border-stone-300 active:bg-stone-200',
-  danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm shadow-rose-600/20 active:bg-rose-800',
-  ghost: 'bg-transparent hover:bg-stone-100 text-stone-600 active:bg-stone-200',
-  success: 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20 active:bg-emerald-800',
+  primary: 'bg-[#fbb710] hover:bg-[#e5a607] text-stone-950 font-bold shadow-xs active:bg-[#d09006]',
+  dark: 'bg-stone-950 hover:bg-stone-800 text-white font-bold active:bg-black',
+  secondary: 'bg-stone-100 hover:bg-stone-200 text-stone-900 font-semibold active:bg-stone-300',
+  outline: 'bg-transparent hover:bg-stone-100 text-stone-900 border border-stone-300 font-semibold active:bg-stone-200',
+  danger: 'bg-rose-600 hover:bg-rose-700 text-white font-bold active:bg-rose-800',
+  ghost: 'bg-transparent hover:bg-stone-100 text-stone-700 font-semibold active:bg-stone-200',
+  success: 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold active:bg-emerald-800',
 };
 
 const sizes = {

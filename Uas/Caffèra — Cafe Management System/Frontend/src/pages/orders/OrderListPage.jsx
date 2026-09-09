@@ -103,10 +103,10 @@ export const OrderListPage = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200">
         <div>
-          <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2.5">
-            <ClipboardList className="w-6 h-6 text-amber-600" />
+          <div className="w-8 h-1 bg-[#fbb710] mb-2" />
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-950 tracking-tight flex items-center gap-2.5">
             <span>Daftar Pesanan Café</span>
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 mt-1">
@@ -119,8 +119,9 @@ export const OrderListPage = () => {
           size="md"
           onClick={() => navigate('/orders/create')}
           icon={<Plus className="w-4 h-4" />}
+          className="uppercase tracking-wider font-extrabold text-xs"
         >
-          Buat Pesanan Baru
+          + Buat Pesanan Baru
         </Button>
       </div>
 
@@ -146,7 +147,7 @@ export const OrderListPage = () => {
                 setSelectedOrderType(e.target.value);
                 setPagination((prev) => ({ ...prev, pageNumber: 1 }));
               }}
-              className="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/30 shadow-sm cursor-pointer"
+              className="px-3 py-2 bg-white border border-stone-200 text-xs font-bold text-stone-800 focus:outline-none focus:border-[#fbb710] shadow-xs cursor-pointer"
             >
               <option value="All">Semua Tipe Order</option>
               <option value="DineIn">Dine In (Meja)</option>
@@ -166,10 +167,10 @@ export const OrderListPage = () => {
                   setSelectedStatus(status);
                   setPagination((prev) => ({ ...prev, pageNumber: 1 }));
                 }}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                className={`px-4 py-2 text-xs font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer ${
                   isSelected
-                    ? 'bg-amber-600 text-white shadow-sm shadow-amber-600/30'
-                    : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
+                    ? 'bg-[#fbb710] text-stone-950 shadow-xs'
+                    : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
                 }`}
               >
                 {status === 'All' ? 'Semua Status' : status}

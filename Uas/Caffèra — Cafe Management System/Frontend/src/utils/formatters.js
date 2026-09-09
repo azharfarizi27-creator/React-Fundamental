@@ -51,16 +51,19 @@ export const formatDateOnly = (dateString) => {
 };
 
 /**
- * Format relative time (e.g. "5 menit lalu")
+ * Calculate sum of multiple amounts using ES6 Rest Parameter (...values)
+ * @param  {...number} values
+ * @returns {number}
  */
-export const formatRelativeTime = (dateString) => {
-  if (!dateString) return '-';
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now - date) / 1000);
+export const calculateTotalSum = (...values) => {
+  return values.reduce((acc, curr) => acc + (Number(curr) || 0), 0);
+};
 
-  if (diffInSeconds < 60) return 'Baru saja';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} mnt lalu`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} jam lalu`;
-  return formatDateOnly(dateString);
+/**
+ * Combine multiple class names / string labels using ES6 Rest Parameter (...parts)
+ * @param  {...string} parts
+ * @returns {string}
+ */
+export const combineLabels = (...parts) => {
+  return parts.filter(Boolean).join(' • ');
 };

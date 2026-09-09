@@ -11,6 +11,8 @@ export const OrderProvider = ({ children }) => {
   const [tableNumber, setTableNumber] = useState(null);
   const [orderType, setOrderType] = useState('DineIn');
   const [customerName, setCustomerName] = useState('');
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountAmount, setDiscountAmount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add Item to Cart
@@ -73,12 +75,54 @@ export const OrderProvider = ({ children }) => {
     setTableNumber(number);
   }, []);
 
+  // Apply Voucher / Promo Code
+  const applyDiscount = useCallback((code) => {
+    const cleanCode = code?.trim().toUpperCase();
+    if (!cleanCode) {
+      setDiscountCode('');
+      setDiscountAmount(0);
+      return { success: false, message: 'Kode voucher kosong' };
+    }
+
+    const currentSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    if (cleanCode === 'CAFF10') {
+      const disc = Math.round(currentSubtotal * 0.1);
+      setDiscountCode('CAFF10');
+      setDiscountAmount(disc);
+      success('Voucher CAFF10 aktif: Diskon 10%!');
+      return { success: true, message: 'Diskon 10% diterapkan' };
+    } else if (cleanCode === 'HEMAT20') {
+      const disc = Math.min(currentSubtotal, 20000);
+      setDiscountCode('HEMAT20');
+      setDiscountAmount(disc);
+      success('Voucher HEMAT20 aktif: Potongan Rp 20.000!');
+      return { success: true, message: 'Potongan Rp 20.000 diterapkan' };
+    } else if (cleanCode === 'STUDENT5') {
+      const disc = Math.round(currentSubtotal * 0.05);
+      setDiscountCode('STUDENT5');
+      setDiscountAmount(disc);
+      success('Voucher STUDENT5 aktif: Diskon Pelajar 5%!');
+      return { success: true, message: 'Diskon 5% diterapkan' };
+    } else {
+      error('Kode voucher tidak valid atau sudah kedaluwarsa');
+      return { success: false, message: 'Kode voucher tidak valid' };
+    }
+  }, [cartItems, success, error]);
+
+  const removeDiscount = useCallback(() => {
+    setDiscountCode('');
+    setDiscountAmount(0);
+  }, []);
+
   // Clear Cart
   const clearCart = useCallback(() => {
     setCartItems([]);
     setTableId(null);
     setTableNumber(null);
     setCustomerName('');
+    setDiscountCode('');
+    setDiscountAmount(0);
   }, []);
 
   // Computed Values
@@ -91,15 +135,15 @@ export const OrderProvider = ({ children }) => {
   }, [subtotal]);
 
   const totalAmount = useMemo(() => {
-    return subtotal + tax;
-  }, [subtotal, tax]);
+    return Math.max(0, subtotal + tax - discountAmount);
+  }, [subtotal, tax, discountAmount]);
 
   const totalItemCount = useMemo(() => {
     return cartItems.reduce((count, item) => count + item.quantity, 0);
   }, [cartItems]);
 
   // Submit Order to backend / storage
-  const submitOrder = async () => {
+  const submitOrder = async (paymentDetails = {}) => {
     if (cartItems.length === 0) {
       error('Keranjang pesanan masih kosong');
       return { success: false, message: 'Keranjang kosong' };
@@ -116,6 +160,14 @@ export const OrderProvider = ({ children }) => {
         tableId: orderType === 'DineIn' ? tableId : null,
         orderType,
         customerName: customerName.trim() || undefined,
+        subtotal,
+        tax,
+        discountAmount,
+        discountCode: discountCode || undefined,
+        totalAmount,
+        paymentMethod: paymentDetails.paymentMethod || 'Cash',
+        cashReceived: paymentDetails.cashReceived || undefined,
+        cashChange: paymentDetails.cashChange || undefined,
         items: cartItems.map((item) => ({
           menuId: item.menuId,
           quantity: item.quantity,
@@ -147,6 +199,8 @@ export const OrderProvider = ({ children }) => {
     tableNumber,
     orderType,
     customerName,
+    discountCode,
+    discountAmount,
     isSubmitting,
     subtotal,
     tax,
@@ -159,6 +213,8 @@ export const OrderProvider = ({ children }) => {
     selectTable,
     setOrderType,
     setCustomerName,
+    applyDiscount,
+    removeDiscount,
     clearCart,
     submitOrder,
   };
