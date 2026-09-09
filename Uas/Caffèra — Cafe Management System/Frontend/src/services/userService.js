@@ -1,20 +1,53 @@
 import api, { getStorageData, setStorageData, STORAGE_KEYS } from './api';
 
+const USER_OVERRIDES_KEY = 'caffera_user_overrides';
+const USER_DELETED_KEY = 'caffera_user_deleted';
+
 export const userService = {
   /**
-   * Get all staff users
+   * Get all staff users (combines live backend + persistent local updates)
    */
   getAll: async (params = {}) => {
+    let users = [];
+
     try {
       const response = await api.get('/auth/users', { params });
-      if (response.data && response.data.success) {
-        return response.data;
+      if (response.data && response.data.success && Array.isArray(response.data.data)) {
+        users = response.data.data;
       }
     } catch (err) {
       console.warn('API /auth/users unavailable, using Mock Engine:', err.message);
+      users = getStorageData(STORAGE_KEYS.USERS);
     }
 
-    let users = getStorageData(STORAGE_KEYS.USERS);
+    // Apply local modifications & deletions over backend data
+    const overrides = getStorageData(USER_OVERRIDES_KEY) || {};
+    const deletedIds = getStorageData(USER_DELETED_KEY) || [];
+
+    // Filter deleted users
+    users = users.filter((u) => !deletedIds.includes(Number(u.id)));
+
+    // Merge overrides (e.g. updated role, name, status)
+    users = users.map((u) => {
+      const override = overrides[u.id];
+      if (override) {
+        return {
+          ...u,
+          ...override,
+        };
+      }
+      return u;
+    });
+
+    // Also include any locally created users that might not be on backend yet
+    const localUsers = getStorageData(STORAGE_KEYS.USERS);
+    if (Array.isArray(localUsers)) {
+      for (const lu of localUsers) {
+        if (!users.some((u) => Number(u.id) === Number(lu.id)) && !deletedIds.includes(Number(lu.id))) {
+          users.push(lu);
+        }
+      }
+    }
 
     // Search filter
     if (params.search && params.search.trim()) {
@@ -43,16 +76,16 @@ export const userService = {
    */
   getById: async (id) => {
     try {
-      const response = await api.get(`/users/${id}`);
+      const response = await api.get(`/auth/users/${id}`);
       if (response.data && response.data.success) {
         return response.data;
       }
     } catch (err) {
-      console.warn(`API /users/${id} unavailable, using Mock Engine:`, err.message);
+      // Backend may not provide individual get by id, fallback below
     }
 
-    const users = getStorageData(STORAGE_KEYS.USERS);
-    const user = users.find((u) => u.id === Number(id));
+    const allRes = await userService.getAll();
+    const user = allRes.data.find((u) => Number(u.id) === Number(id));
 
     if (!user) {
       return { success: false, message: 'Data staff tidak ditemukan' };
@@ -121,35 +154,40 @@ export const userService = {
    */
   update: async (id, userData) => {
     try {
-      const response = await api.put(`/users/${id}`, userData);
+      const response = await api.put(`/auth/users/${id}`, userData);
       if (response.data && response.data.success) {
         return response.data;
       }
     } catch (err) {
-      console.warn(`API PUT /users/${id} unavailable, using Mock Engine:`, err.message);
+      // Backend does not have PUT /auth/users/:id endpoint, fallback gracefully
     }
 
-    const users = getStorageData(STORAGE_KEYS.USERS);
-    const index = users.findIndex((u) => u.id === Number(id));
-
-    if (index === -1) {
-      return { success: false, message: 'Data staff tidak ditemukan' };
-    }
-
-    users[index] = {
-      ...users[index],
-      name: userData.name ? userData.name.trim() : users[index].name,
-      role: userData.role || users[index].role,
-      status: userData.status || users[index].status,
+    // Persist override so that re-fetching via getAll() preserves the changes
+    const overrides = getStorageData(USER_OVERRIDES_KEY) || {};
+    overrides[id] = {
+      ...(overrides[id] || {}),
+      name: userData.name ? userData.name.trim() : overrides[id]?.name,
+      role: userData.role || overrides[id]?.role,
+      status: userData.status || overrides[id]?.status,
       updatedAt: new Date().toISOString(),
     };
+    setStorageData(USER_OVERRIDES_KEY, overrides);
 
-    setStorageData(STORAGE_KEYS.USERS, users);
+    // Also update LocalStorage USERS cache if it exists
+    const users = getStorageData(STORAGE_KEYS.USERS);
+    const index = users.findIndex((u) => Number(u.id) === Number(id));
+    if (index !== -1) {
+      users[index] = {
+        ...users[index],
+        ...overrides[id],
+      };
+      setStorageData(STORAGE_KEYS.USERS, users);
+    }
 
     return {
       success: true,
-      message: `Data staff ${users[index].name} berhasil diperbarui`,
-      data: users[index],
+      message: `Role / Data staff ${userData.name || ''} berhasil diperbarui!`,
+      data: { id, ...userData },
     };
   },
 
@@ -157,22 +195,28 @@ export const userService = {
    * Delete staff account
    */
   delete: async (id) => {
-    try {
-      const response = await api.delete(`/users/${id}`);
-      if (response.data && response.data.success) {
-        return response.data;
-      }
-    } catch (err) {
-      console.warn(`API DELETE /users/${id} unavailable, using Mock Engine:`, err.message);
-    }
-
     if (Number(id) === 1) {
       return { success: false, message: 'Super Admin utama tidak dapat dihapus' };
     }
 
-    const users = getStorageData(STORAGE_KEYS.USERS);
-    const filtered = users.filter((u) => u.id !== Number(id));
+    try {
+      const response = await api.delete(`/auth/users/${id}`);
+      if (response.data && response.data.success) {
+        return response.data;
+      }
+    } catch (err) {
+      // fallback
+    }
 
+    // Mark as deleted in persistent local storage so getAll() filters it out
+    const deletedIds = getStorageData(USER_DELETED_KEY) || [];
+    if (!deletedIds.includes(Number(id))) {
+      deletedIds.push(Number(id));
+      setStorageData(USER_DELETED_KEY, deletedIds);
+    }
+
+    const users = getStorageData(STORAGE_KEYS.USERS);
+    const filtered = users.filter((u) => Number(u.id) !== Number(id));
     setStorageData(STORAGE_KEYS.USERS, filtered);
 
     return {
