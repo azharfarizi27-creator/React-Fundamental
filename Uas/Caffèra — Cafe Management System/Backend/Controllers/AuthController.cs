@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Caffera.Backend.DTOs.Auth;
 using Caffera.Backend.DTOs.Common;
 using Caffera.Backend.Services.Interfaces;
@@ -66,10 +66,53 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("users")]
+    [HttpGet("/api/users")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<IEnumerable<UserDto>>>> GetAllUsers()
     {
         var result = await _authService.GetAllUsersAsync();
+        return Ok(result);
+    }
+
+    [HttpGet("users/{id}")]
+    [HttpGet("/api/users/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<UserDto>>> GetUserById(int id)
+    {
+        var result = await _authService.GetProfileAsync(id);
+        if (!result.Success)
+        {
+            return NotFound(result);
+        }
+
+        return Ok(result);
+    }
+
+    [HttpPut("users/{id}")]
+    [HttpPut("/api/users/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<UserDto>>> UpdateUser(int id, [FromBody] UpdateUserDto updateDto)
+    {
+        var result = await _authService.UpdateUserAsync(id, updateDto);
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
+    [HttpDelete("users/{id}")]
+    [HttpDelete("/api/users/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteUser(int id)
+    {
+        var result = await _authService.DeleteUserAsync(id);
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
         return Ok(result);
     }
 }
