@@ -13,21 +13,27 @@ public class OrderService : IOrderService
     private readonly IRepository<Menu> _menuRepository;
     private readonly IRepository<Table> _tableRepository;
     private readonly IRepository<User> _userRepository;
+    private readonly ILogger<OrderService> _logger;
 
     public OrderService(
         IOrderRepository orderRepository,
         IRepository<Menu> menuRepository,
         IRepository<Table> tableRepository,
-        IRepository<User> userRepository)
+        IRepository<User> userRepository,
+        ILogger<OrderService> logger)
     {
         _orderRepository = orderRepository;
         _menuRepository = menuRepository;
         _tableRepository = tableRepository;
         _userRepository = userRepository;
+        _logger = logger;
     }
 
     public async Task<ApiResponse<PagedResult<OrderDto>>> GetAllAsync(OrderFilterParams filterParams)
     {
+        _logger.LogInformation("[ORDER] 📋 Mengambil daftar pesanan (Page: {Page}, Size: {Size}, Status: '{Status}', Type: '{Type}', Search: '{Search}')",
+            filterParams.PageNumber, filterParams.PageSize, filterParams.Status ?? "All", filterParams.OrderType ?? "All", filterParams.Search ?? "-");
+
         var query = _orderRepository.Query()
             .Include(o => o.User)
             .Include(o => o.Table)
@@ -97,9 +103,11 @@ public class OrderService : IOrderService
 
     public async Task<ApiResponse<OrderDto>> GetByIdAsync(int id)
     {
+        _logger.LogInformation("[ORDER] 🔍 Mengambil detail pesanan ID: {OrderId}", id);
         var order = await _orderRepository.GetOrderWithDetailsAsync(id);
         if (order == null)
         {
+            _logger.LogWarning("[ORDER] ⚠️ Pesanan dengan ID {OrderId} tidak ditemukan", id);
             return ApiResponse<OrderDto>.FailResult("Pesanan tidak ditemukan");
         }
 
@@ -108,9 +116,11 @@ public class OrderService : IOrderService
 
     public async Task<ApiResponse<OrderDto>> GetByOrderNumberAsync(string orderNumber)
     {
+        _logger.LogInformation("[ORDER] 🔍 Mengambil detail pesanan berdasarkan Nomor: '{OrderNumber}'", orderNumber);
         var order = await _orderRepository.GetOrderByNumberWithDetailsAsync(orderNumber.Trim());
         if (order == null)
         {
+            _logger.LogWarning("[ORDER] ⚠️ Pesanan dengan Nomor '{OrderNumber}' tidak ditemukan", orderNumber);
             return ApiResponse<OrderDto>.FailResult("Pesanan tidak ditemukan");
         }
 
@@ -119,9 +129,13 @@ public class OrderService : IOrderService
 
     public async Task<ApiResponse<OrderDto>> CreateAsync(int userId, CreateOrderDto dto)
     {
+        _logger.LogInformation("[ORDER] 🛒 Membuat pesanan baru oleh User ID: {UserId}, Tipe: {OrderType}, Jumlah Menu: {Count}", 
+            userId, dto.OrderType, dto.Items.Count);
+
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
         {
+            _logger.LogWarning("[ORDER] ⚠️ Gagal membuat pesanan: User ID {UserId} tidak ditemukan di database", userId);
             return ApiResponse<OrderDto>.FailResult("Kasir/Pengguna tidak valid");
         }
 
@@ -130,12 +144,14 @@ public class OrderService : IOrderService
         {
             if (!dto.TableId.HasValue)
             {
+                _logger.LogWarning("[ORDER] ⚠️ Gagal membuat pesanan Dine In: TableId tidak disertakan");
                 return ApiResponse<OrderDto>.FailResult("Meja wajib dipilih untuk pesanan Dine In");
             }
 
             table = await _tableRepository.GetByIdAsync(dto.TableId.Value);
             if (table == null)
             {
+                _logger.LogWarning("[ORDER] ⚠️ Gagal membuat pesanan: Meja ID {TableId} tidak ditemukan", dto.TableId.Value);
                 return ApiResponse<OrderDto>.FailResult("Meja yang dipilih tidak ditemukan");
             }
 
@@ -143,6 +159,7 @@ public class OrderService : IOrderService
             table.Status = "Occupied";
             table.UpdatedAt = DateTime.UtcNow;
             await _tableRepository.UpdateAsync(table);
+            _logger.LogInformation("[ORDER] 🪑 Status Meja #{TableNumber} (ID: {TableId}) diubah menjadi Occupied", table.Number, table.Id);
         }
 
         var menuIds = dto.Items.Select(i => i.MenuId).Distinct().ToList();
@@ -152,11 +169,13 @@ public class OrderService : IOrderService
         {
             if (!menus.TryGetValue(item.MenuId, out var menu))
             {
+                _logger.LogWarning("[ORDER] ⚠️ Gagal membuat pesanan: Menu ID {MenuId} tidak ditemukan", item.MenuId);
                 return ApiResponse<OrderDto>.FailResult($"Menu dengan ID {item.MenuId} tidak ditemukan");
             }
 
             if (!menu.IsAvailable)
             {
+                _logger.LogWarning("[ORDER] ⚠️ Gagal membuat pesanan: Menu '{MenuName}' (ID: {MenuId}) sedang Tidak Tersedia", menu.Name, menu.Id);
                 return ApiResponse<OrderDto>.FailResult($"Menu '{menu.Name}' saat ini sedang tidak tersedia");
             }
         }
@@ -194,23 +213,31 @@ public class OrderService : IOrderService
         var createdOrder = await _orderRepository.AddAsync(order);
         var fullOrder = await _orderRepository.GetOrderWithDetailsAsync(createdOrder.Id);
 
+        _logger.LogInformation("[ORDER] ✅ Pesanan berhasil dibuat! No: {OrderNumber} (ID: {OrderId}), Total: Rp {Total:N0}, Kasir: {Cashier}",
+            order.OrderNumber, createdOrder.Id, order.TotalAmount, user.Name);
+
         return ApiResponse<OrderDto>.SuccessResult(MapToOrderDto(fullOrder!), "Pesanan berhasil dibuat");
     }
 
     public async Task<ApiResponse<OrderDto>> UpdateStatusAsync(int id, UpdateOrderStatusDto dto)
     {
+        _logger.LogInformation("[ORDER] 🔄 Memperbarui status pesanan ID {OrderId} ke '{NewStatus}'", id, dto.Status);
+
         var order = await _orderRepository.GetOrderWithDetailsAsync(id);
         if (order == null)
         {
+            _logger.LogWarning("[ORDER] ⚠️ Gagal update status: Pesanan ID {OrderId} tidak ditemukan", id);
             return ApiResponse<OrderDto>.FailResult("Pesanan tidak ditemukan");
         }
 
         var validStatuses = new[] { "Pending", "Preparing", "Ready", "Completed", "Cancelled" };
         if (!validStatuses.Contains(dto.Status, StringComparer.OrdinalIgnoreCase))
         {
+            _logger.LogWarning("[ORDER] ⚠️ Gagal update status: Status '{InvalidStatus}' tidak valid", dto.Status);
             return ApiResponse<OrderDto>.FailResult("Status pesanan tidak valid");
         }
 
+        var oldStatus = order.Status;
         order.Status = dto.Status;
         order.UpdatedAt = DateTime.UtcNow;
 
@@ -230,6 +257,7 @@ public class OrderService : IOrderService
                     table.Status = "Available";
                     table.UpdatedAt = DateTime.UtcNow;
                     await _tableRepository.UpdateAsync(table);
+                    _logger.LogInformation("[ORDER] 🪑 Meja #{TableNumber} kembali menjadi Available (Pesanan selesai/dibatalkan)", table.Number);
                 }
             }
         }
@@ -237,19 +265,26 @@ public class OrderService : IOrderService
         await _orderRepository.UpdateAsync(order);
         var updated = await _orderRepository.GetOrderWithDetailsAsync(id);
 
+        _logger.LogInformation("[ORDER] ✅ Status pesanan {OrderNumber} (ID: {OrderId}) berhasil diubah: '{OldStatus}' -> '{NewStatus}'",
+            order.OrderNumber, order.Id, oldStatus, order.Status);
+
         return ApiResponse<OrderDto>.SuccessResult(MapToOrderDto(updated!), "Status pesanan berhasil diperbarui");
     }
 
     public async Task<ApiResponse<bool>> CancelOrderAsync(int id)
     {
+        _logger.LogInformation("[ORDER] 🚫 Memproses pembatalan pesanan ID: {OrderId}", id);
+
         var order = await _orderRepository.GetOrderWithDetailsAsync(id);
         if (order == null)
         {
+            _logger.LogWarning("[ORDER] ⚠️ Pembatalan gagal: Pesanan ID {OrderId} tidak ditemukan", id);
             return ApiResponse<bool>.FailResult("Pesanan tidak ditemukan");
         }
 
         if (order.Status == "Completed")
         {
+            _logger.LogWarning("[ORDER] ⚠️ Pembatalan ditolak: Pesanan {OrderNumber} sudah Completed", order.OrderNumber);
             return ApiResponse<bool>.FailResult("Pesanan yang sudah selesai (Completed) tidak dapat dibatalkan");
         }
 
@@ -269,11 +304,14 @@ public class OrderService : IOrderService
                     table.Status = "Available";
                     table.UpdatedAt = DateTime.UtcNow;
                     await _tableRepository.UpdateAsync(table);
+                    _logger.LogInformation("[ORDER] 🪑 Meja #{TableNumber} kembali Available setelah pesanan {OrderNumber} dibatalkan", table.Number, order.OrderNumber);
                 }
             }
         }
 
         await _orderRepository.UpdateAsync(order);
+        _logger.LogInformation("[ORDER] ✅ Pesanan {OrderNumber} (ID: {OrderId}) berhasil dibatalkan", order.OrderNumber, order.Id);
+
         return ApiResponse<bool>.SuccessResult(true, "Pesanan berhasil dibatalkan");
     }
 

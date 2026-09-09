@@ -12,19 +12,25 @@ public class MenuService : IMenuService
     private readonly IRepository<Menu> _menuRepository;
     private readonly IRepository<Category> _categoryRepository;
     private readonly IRepository<OrderItem> _orderItemRepository;
+    private readonly ILogger<MenuService> _logger;
 
     public MenuService(
         IRepository<Menu> menuRepository, 
         IRepository<Category> categoryRepository,
-        IRepository<OrderItem> orderItemRepository)
+        IRepository<OrderItem> orderItemRepository,
+        ILogger<MenuService> logger)
     {
         _menuRepository = menuRepository;
         _categoryRepository = categoryRepository;
         _orderItemRepository = orderItemRepository;
+        _logger = logger;
     }
 
     public async Task<ApiResponse<PagedResult<MenuDto>>> GetAllAsync(MenuFilterParams filterParams)
     {
+        _logger.LogInformation("[MENU] 📋 Mengambil daftar menu (Page: {Page}, Size: {Size}, CategoryId: {CatId}, Available: {Avail}, Search: '{Search}')",
+            filterParams.PageNumber, filterParams.PageSize, filterParams.CategoryId?.ToString() ?? "All", filterParams.IsAvailable?.ToString() ?? "All", filterParams.Search ?? "-");
+
         var query = _menuRepository.Query().Include(m => m.Category).AsQueryable();
 
         // 1. Search filter
@@ -100,12 +106,14 @@ public class MenuService : IMenuService
 
     public async Task<ApiResponse<MenuDto>> GetByIdAsync(int id)
     {
+        _logger.LogInformation("[MENU] 🔍 Mengambil detail menu ID: {MenuId}", id);
         var menu = await _menuRepository.Query()
             .Include(m => m.Category)
             .FirstOrDefaultAsync(m => m.Id == id);
 
         if (menu == null)
         {
+            _logger.LogWarning("[MENU] ⚠️ Menu dengan ID {MenuId} tidak ditemukan", id);
             return ApiResponse<MenuDto>.FailResult("Menu tidak ditemukan");
         }
 
@@ -127,9 +135,13 @@ public class MenuService : IMenuService
 
     public async Task<ApiResponse<MenuDto>> CreateAsync(CreateMenuDto dto)
     {
+        _logger.LogInformation("[MENU] ➕ Menambahkan menu baru: '{MenuName}', Harga: Rp {Price:N0}, Kategori ID: {CatId}", 
+            dto.Name, dto.Price, dto.CategoryId);
+
         var category = await _categoryRepository.GetByIdAsync(dto.CategoryId);
         if (category == null)
         {
+            _logger.LogWarning("[MENU] ⚠️ Gagal tambah menu: Kategori ID {CatId} tidak valid/tidak ditemukan", dto.CategoryId);
             return ApiResponse<MenuDto>.FailResult("Kategori tidak valid");
         }
 
@@ -145,6 +157,8 @@ public class MenuService : IMenuService
         };
 
         var created = await _menuRepository.AddAsync(menu);
+        _logger.LogInformation("[MENU] ✅ Menu berhasil ditambahkan: '{MenuName}' (ID: {MenuId}) pada kategori '{CategoryName}'", 
+            created.Name, created.Id, category.Name);
 
         var resultDto = new MenuDto
         {
@@ -164,18 +178,22 @@ public class MenuService : IMenuService
 
     public async Task<ApiResponse<MenuDto>> UpdateAsync(int id, UpdateMenuDto dto)
     {
+        _logger.LogInformation("[MENU] ✏️ Memperbarui menu ID: {MenuId} ('{MenuName}')", id, dto.Name);
+
         var menu = await _menuRepository.Query()
             .Include(m => m.Category)
             .FirstOrDefaultAsync(m => m.Id == id);
 
         if (menu == null)
         {
+            _logger.LogWarning("[MENU] ⚠️ Gagal perbarui: Menu ID {MenuId} tidak ditemukan", id);
             return ApiResponse<MenuDto>.FailResult("Menu tidak ditemukan");
         }
 
         var category = await _categoryRepository.GetByIdAsync(dto.CategoryId);
         if (category == null)
         {
+            _logger.LogWarning("[MENU] ⚠️ Gagal perbarui menu: Kategori ID {CatId} tidak valid", dto.CategoryId);
             return ApiResponse<MenuDto>.FailResult("Kategori tidak valid");
         }
 
@@ -188,6 +206,7 @@ public class MenuService : IMenuService
         menu.UpdatedAt = DateTime.UtcNow;
 
         await _menuRepository.UpdateAsync(menu);
+        _logger.LogInformation("[MENU] ✅ Menu ID {MenuId} berhasil diperbarui: '{MenuName}'", id, menu.Name);
 
         var resultDto = new MenuDto
         {
@@ -207,27 +226,36 @@ public class MenuService : IMenuService
 
     public async Task<ApiResponse<bool>> DeleteAsync(int id)
     {
+        _logger.LogInformation("[MENU] 🗑️ Memproses penghapusan menu ID: {MenuId}", id);
+
         var menu = await _menuRepository.GetByIdAsync(id);
         if (menu == null)
         {
+            _logger.LogWarning("[MENU] ⚠️ Gagal hapus: Menu ID {MenuId} tidak ditemukan", id);
             return ApiResponse<bool>.FailResult("Menu tidak ditemukan");
         }
 
         var hasOrderItems = await _orderItemRepository.Query().AnyAsync(oi => oi.MenuId == id);
         if (hasOrderItems)
         {
+            _logger.LogWarning("[MENU] ⚠️ Penghapusan menu ID {MenuId} ('{MenuName}') ditolak: Menu sudah tercatat dalam riwayat pesanan", id, menu.Name);
             return ApiResponse<bool>.FailResult("Menu tidak dapat dihapus karena sudah ada dalam riwayat pesanan. Anda dapat mengubah statusnya menjadi Tidak Tersedia.");
         }
 
         await _menuRepository.DeleteAsync(menu);
+        _logger.LogInformation("[MENU] ✅ Menu ID {MenuId} ('{MenuName}') berhasil dihapus dari database", id, menu.Name);
+
         return ApiResponse<bool>.SuccessResult(true, "Menu berhasil dihapus");
     }
 
     public async Task<ApiResponse<bool>> ToggleAvailabilityAsync(int id)
     {
+        _logger.LogInformation("[MENU] 🔄 Mengubah status ketersediaan menu ID: {MenuId}", id);
+
         var menu = await _menuRepository.GetByIdAsync(id);
         if (menu == null)
         {
+            _logger.LogWarning("[MENU] ⚠️ Gagal toggle status: Menu ID {MenuId} tidak ditemukan", id);
             return ApiResponse<bool>.FailResult("Menu tidak ditemukan");
         }
 
@@ -236,6 +264,8 @@ public class MenuService : IMenuService
         await _menuRepository.UpdateAsync(menu);
 
         var statusText = menu.IsAvailable ? "Tersedia" : "Tidak Tersedia";
+        _logger.LogInformation("[MENU] ✅ Status menu '{MenuName}' (ID: {MenuId}) diubah menjadi: {Status}", menu.Name, menu.Id, statusText);
+
         return ApiResponse<bool>.SuccessResult(menu.IsAvailable, $"Status ketersediaan menu diubah menjadi {statusText}");
     }
 }

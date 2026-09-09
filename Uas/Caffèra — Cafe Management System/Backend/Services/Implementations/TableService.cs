@@ -11,15 +11,22 @@ public class TableService : ITableService
 {
     private readonly IRepository<Table> _tableRepository;
     private readonly IRepository<Order> _orderRepository;
+    private readonly ILogger<TableService> _logger;
 
-    public TableService(IRepository<Table> tableRepository, IRepository<Order> orderRepository)
+    public TableService(
+        IRepository<Table> tableRepository, 
+        IRepository<Order> orderRepository,
+        ILogger<TableService> logger)
     {
         _tableRepository = tableRepository;
         _orderRepository = orderRepository;
+        _logger = logger;
     }
 
     public async Task<ApiResponse<IEnumerable<TableDto>>> GetAllAsync(string? status = null)
     {
+        _logger.LogInformation("[TABLE] 📋 Mengambil daftar meja (Status: '{Status}')", status ?? "All");
+
         var query = _tableRepository.Query().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(status))
@@ -43,9 +50,12 @@ public class TableService : ITableService
 
     public async Task<ApiResponse<TableDto>> GetByIdAsync(int id)
     {
+        _logger.LogInformation("[TABLE] 🔍 Mengambil detail meja ID: {TableId}", id);
+
         var table = await _tableRepository.GetByIdAsync(id);
         if (table == null)
         {
+            _logger.LogWarning("[TABLE] ⚠️ Meja dengan ID {TableId} tidak ditemukan", id);
             return ApiResponse<TableDto>.FailResult("Meja tidak ditemukan");
         }
 
@@ -63,9 +73,13 @@ public class TableService : ITableService
 
     public async Task<ApiResponse<TableDto>> CreateAsync(CreateTableDto dto)
     {
+        _logger.LogInformation("[TABLE] ➕ Menambahkan meja baru No: {Number}, Kapasitas: {Capacity}, Status: '{Status}'", 
+            dto.Number, dto.Capacity, dto.Status ?? "Available");
+
         var exists = await _tableRepository.Query().AnyAsync(t => t.Number == dto.Number);
         if (exists)
         {
+            _logger.LogWarning("[TABLE] ⚠️ Gagal tambah meja: Nomor meja {Number} sudah terdaftar", dto.Number);
             return ApiResponse<TableDto>.FailResult($"Meja nomor {dto.Number} sudah terdaftar");
         }
 
@@ -78,6 +92,7 @@ public class TableService : ITableService
         };
 
         var created = await _tableRepository.AddAsync(table);
+        _logger.LogInformation("[TABLE] ✅ Meja #{Number} (ID: {TableId}) berhasil ditambahkan", created.Number, created.Id);
 
         var resultDto = new TableDto
         {
@@ -93,9 +108,12 @@ public class TableService : ITableService
 
     public async Task<ApiResponse<TableDto>> UpdateAsync(int id, UpdateTableDto dto)
     {
+        _logger.LogInformation("[TABLE] ✏️ Memperbarui data meja ID: {TableId} (No: {Number})", id, dto.Number);
+
         var table = await _tableRepository.GetByIdAsync(id);
         if (table == null)
         {
+            _logger.LogWarning("[TABLE] ⚠️ Gagal update: Meja ID {TableId} tidak ditemukan", id);
             return ApiResponse<TableDto>.FailResult("Meja tidak ditemukan");
         }
 
@@ -104,6 +122,7 @@ public class TableService : ITableService
 
         if (numberExists)
         {
+            _logger.LogWarning("[TABLE] ⚠️ Gagal update meja ID {TableId}: Nomor meja {Number} sudah digunakan meja lain", id, dto.Number);
             return ApiResponse<TableDto>.FailResult($"Meja nomor {dto.Number} sudah digunakan");
         }
 
@@ -113,6 +132,7 @@ public class TableService : ITableService
         table.UpdatedAt = DateTime.UtcNow;
 
         await _tableRepository.UpdateAsync(table);
+        _logger.LogInformation("[TABLE] ✅ Data meja ID {TableId} (No: {Number}) berhasil diperbarui", id, table.Number);
 
         var resultDto = new TableDto
         {
@@ -128,22 +148,29 @@ public class TableService : ITableService
 
     public async Task<ApiResponse<TableDto>> UpdateStatusAsync(int id, UpdateTableStatusDto dto)
     {
+        _logger.LogInformation("[TABLE] 🔄 Memperbarui status meja ID: {TableId} ke '{NewStatus}'", id, dto.Status);
+
         var table = await _tableRepository.GetByIdAsync(id);
         if (table == null)
         {
+            _logger.LogWarning("[TABLE] ⚠️ Gagal update status: Meja ID {TableId} tidak ditemukan", id);
             return ApiResponse<TableDto>.FailResult("Meja tidak ditemukan");
         }
 
         var validStatuses = new[] { "Available", "Occupied", "Reserved" };
         if (!validStatuses.Contains(dto.Status, StringComparer.OrdinalIgnoreCase))
         {
+            _logger.LogWarning("[TABLE] ⚠️ Status meja '{InvalidStatus}' tidak valid (Harus: Available/Occupied/Reserved)", dto.Status);
             return ApiResponse<TableDto>.FailResult("Status meja harus Available, Occupied, atau Reserved");
         }
 
+        var oldStatus = table.Status;
         table.Status = dto.Status;
         table.UpdatedAt = DateTime.UtcNow;
 
         await _tableRepository.UpdateAsync(table);
+        _logger.LogInformation("[TABLE] ✅ Status meja #{Number} (ID: {TableId}) berhasil diubah: '{OldStatus}' -> '{NewStatus}'", 
+            table.Number, table.Id, oldStatus, table.Status);
 
         var resultDto = new TableDto
         {
@@ -159,9 +186,12 @@ public class TableService : ITableService
 
     public async Task<ApiResponse<bool>> DeleteAsync(int id)
     {
+        _logger.LogInformation("[TABLE] 🗑️ Memproses penghapusan meja ID: {TableId}", id);
+
         var table = await _tableRepository.GetByIdAsync(id);
         if (table == null)
         {
+            _logger.LogWarning("[TABLE] ⚠️ Gagal hapus: Meja ID {TableId} tidak ditemukan", id);
             return ApiResponse<bool>.FailResult("Meja tidak ditemukan");
         }
 
@@ -170,10 +200,13 @@ public class TableService : ITableService
 
         if (hasActiveOrders)
         {
+            _logger.LogWarning("[TABLE] ⚠️ Hapus meja #{Number} (ID: {TableId}) ditolak: Meja sedang memiliki pesanan aktif", table.Number, id);
             return ApiResponse<bool>.FailResult("Tidak dapat menghapus meja yang sedang memiliki pesanan aktif");
         }
 
         await _tableRepository.DeleteAsync(table);
+        _logger.LogInformation("[TABLE] ✅ Meja #{Number} (ID: {TableId}) berhasil dihapus", table.Number, id);
+
         return ApiResponse<bool>.SuccessResult(true, "Meja berhasil dihapus");
     }
 }

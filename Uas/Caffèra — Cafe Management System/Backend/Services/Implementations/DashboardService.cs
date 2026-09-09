@@ -14,21 +14,25 @@ public class DashboardService : IDashboardService
     private readonly IRepository<Menu> _menuRepository;
     private readonly IRepository<Table> _tableRepository;
     private readonly IRepository<OrderItem> _orderItemRepository;
+    private readonly ILogger<DashboardService> _logger;
 
     public DashboardService(
         IOrderRepository orderRepository,
         IRepository<Menu> menuRepository,
         IRepository<Table> tableRepository,
-        IRepository<OrderItem> orderItemRepository)
+        IRepository<OrderItem> orderItemRepository,
+        ILogger<DashboardService> logger)
     {
         _orderRepository = orderRepository;
         _menuRepository = menuRepository;
         _tableRepository = tableRepository;
         _orderItemRepository = orderItemRepository;
+        _logger = logger;
     }
 
     public async Task<ApiResponse<DashboardStatsDto>> GetDashboardStatsAsync()
     {
+        _logger.LogInformation("[DASHBOARD] 📈 Mengambil statistik dashboard Caffèra");
         var today = DateTime.UtcNow.Date;
 
         // 1. Today's orders
@@ -114,6 +118,9 @@ public class DashboardService : IDashboardService
             .OrderByDescending(x => x.TotalQuantitySold)
             .Take(5)
             .ToListAsync();
+
+        _logger.LogInformation("[DASHBOARD] ✅ Statistik siap: Omset Hari Ini = Rp {Rev:N0}, Pesanan Hari Ini = {Orders}, Meja Kosong = {Avail}/{Total}",
+            todayRevenue, todayOrdersCount, availableTablesCount, availableTablesCount + occupiedTablesCount);
 
         var stats = new DashboardStatsDto
         {

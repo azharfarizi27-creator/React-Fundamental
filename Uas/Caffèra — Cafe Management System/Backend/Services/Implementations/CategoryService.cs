@@ -11,15 +11,22 @@ public class CategoryService : ICategoryService
 {
     private readonly IRepository<Category> _categoryRepository;
     private readonly IRepository<Menu> _menuRepository;
+    private readonly ILogger<CategoryService> _logger;
 
-    public CategoryService(IRepository<Category> categoryRepository, IRepository<Menu> menuRepository)
+    public CategoryService(
+        IRepository<Category> categoryRepository, 
+        IRepository<Menu> menuRepository,
+        ILogger<CategoryService> logger)
     {
         _categoryRepository = categoryRepository;
         _menuRepository = menuRepository;
+        _logger = logger;
     }
 
     public async Task<ApiResponse<IEnumerable<CategoryDto>>> GetAllAsync(string? search = null)
     {
+        _logger.LogInformation("[CATEGORY] 📋 Mengambil daftar kategori (Search: '{Search}')", search ?? "-");
+
         var query = _categoryRepository.Query().Include(c => c.Menus).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -44,12 +51,15 @@ public class CategoryService : ICategoryService
 
     public async Task<ApiResponse<CategoryDto>> GetByIdAsync(int id)
     {
+        _logger.LogInformation("[CATEGORY] 🔍 Mengambil detail kategori ID: {CategoryId}", id);
+
         var category = await _categoryRepository.Query()
             .Include(c => c.Menus)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (category == null)
         {
+            _logger.LogWarning("[CATEGORY] ⚠️ Kategori dengan ID {CategoryId} tidak ditemukan", id);
             return ApiResponse<CategoryDto>.FailResult("Kategori tidak ditemukan");
         }
 
@@ -67,22 +77,27 @@ public class CategoryService : ICategoryService
 
     public async Task<ApiResponse<CategoryDto>> CreateAsync(CreateCategoryDto dto)
     {
+        var categoryName = dto.Name.Trim();
+        _logger.LogInformation("[CATEGORY] ➕ Menambahkan kategori baru: '{CategoryName}'", categoryName);
+
         var existing = await _categoryRepository.Query()
-            .AnyAsync(c => c.Name.ToLower() == dto.Name.Trim().ToLower());
+            .AnyAsync(c => c.Name.ToLower() == categoryName.ToLower());
 
         if (existing)
         {
+            _logger.LogWarning("[CATEGORY] ⚠️ Gagal tambah: Kategori '{CategoryName}' sudah ada sebelumnya", categoryName);
             return ApiResponse<CategoryDto>.FailResult("Nama kategori sudah ada");
         }
 
         var category = new Category
         {
-            Name = dto.Name.Trim(),
+            Name = categoryName,
             Description = dto.Description?.Trim(),
             CreatedAt = DateTime.UtcNow
         };
 
         var created = await _categoryRepository.AddAsync(category);
+        _logger.LogInformation("[CATEGORY] ✅ Kategori baru '{CategoryName}' berhasil dibuat dengan ID: {CategoryId}", created.Name, created.Id);
 
         var resultDto = new CategoryDto
         {
@@ -98,28 +113,34 @@ public class CategoryService : ICategoryService
 
     public async Task<ApiResponse<CategoryDto>> UpdateAsync(int id, UpdateCategoryDto dto)
     {
+        var categoryName = dto.Name.Trim();
+        _logger.LogInformation("[CATEGORY] ✏️ Memperbarui kategori ID: {CategoryId} ('{CategoryName}')", id, categoryName);
+
         var category = await _categoryRepository.Query()
             .Include(c => c.Menus)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (category == null)
         {
+            _logger.LogWarning("[CATEGORY] ⚠️ Gagal update: Kategori ID {CategoryId} tidak ditemukan", id);
             return ApiResponse<CategoryDto>.FailResult("Kategori tidak ditemukan");
         }
 
         var nameExists = await _categoryRepository.Query()
-            .AnyAsync(c => c.Id != id && c.Name.ToLower() == dto.Name.Trim().ToLower());
+            .AnyAsync(c => c.Id != id && c.Name.ToLower() == categoryName.ToLower());
 
         if (nameExists)
         {
+            _logger.LogWarning("[CATEGORY] ⚠️ Gagal update: Nama kategori '{CategoryName}' sudah digunakan oleh kategori lain", categoryName);
             return ApiResponse<CategoryDto>.FailResult("Nama kategori sudah digunakan oleh kategori lain");
         }
 
-        category.Name = dto.Name.Trim();
+        category.Name = categoryName;
         category.Description = dto.Description?.Trim();
         category.UpdatedAt = DateTime.UtcNow;
 
         await _categoryRepository.UpdateAsync(category);
+        _logger.LogInformation("[CATEGORY] ✅ Kategori ID {CategoryId} berhasil diperbarui menjadi '{CategoryName}'", id, category.Name);
 
         var resultDto = new CategoryDto
         {
@@ -135,21 +156,28 @@ public class CategoryService : ICategoryService
 
     public async Task<ApiResponse<bool>> DeleteAsync(int id)
     {
+        _logger.LogInformation("[CATEGORY] 🗑️ Memproses penghapusan kategori ID: {CategoryId}", id);
+
         var category = await _categoryRepository.Query()
             .Include(c => c.Menus)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (category == null)
         {
+            _logger.LogWarning("[CATEGORY] ⚠️ Gagal hapus: Kategori ID {CategoryId} tidak ditemukan", id);
             return ApiResponse<bool>.FailResult("Kategori tidak ditemukan");
         }
 
         if (category.Menus.Any())
         {
+            _logger.LogWarning("[CATEGORY] ⚠️ Hapus kategori ID {CategoryId} ('{CategoryName}') ditolak: Masih memiliki {Count} menu terkait", 
+                id, category.Name, category.Menus.Count);
             return ApiResponse<bool>.FailResult("Tidak dapat menghapus kategori yang masih memiliki menu terkait. Hapus atau pindahkan menu terlebih dahulu.");
         }
 
         await _categoryRepository.DeleteAsync(category);
+        _logger.LogInformation("[CATEGORY] ✅ Kategori ID {CategoryId} ('{CategoryName}') berhasil dihapus", id, category.Name);
+
         return ApiResponse<bool>.SuccessResult(true, "Kategori berhasil dihapus");
     }
 }

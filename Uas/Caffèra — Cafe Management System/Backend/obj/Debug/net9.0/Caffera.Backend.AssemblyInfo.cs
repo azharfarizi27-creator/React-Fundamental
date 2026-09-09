@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Caffera.Backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5376853aee307b92751800b5c596c48bc88267ab")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c388566cc407d556bac8ba41d0816ba5fea16a66")]
 [assembly: System.Reflection.AssemblyProductAttribute("Caffera.Backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Caffera.Backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

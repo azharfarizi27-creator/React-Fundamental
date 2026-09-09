@@ -1,6 +1,49 @@
 @Caffera.Backend_HostAddress = http://localhost:5066
+@adminToken = 
 
-GET {{Caffera.Backend_HostAddress}}/weatherforecast/
+### 1. Health Check / Swagger
+GET {{Caffera.Backend_HostAddress}}/swagger/v1/swagger.json
 Accept: application/json
 
-###
+### 2. Login Admin
+# @name loginAdmin
+POST {{Caffera.Backend_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@caffera.com",
+  "password": "admin123"
+}
+
+### 3. Login Cashier
+POST {{Caffera.Backend_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "cashier@caffera.com",
+  "password": "cashier123"
+}
+
+### 4. Get Current Profile
+GET {{Caffera.Backend_HostAddress}}/api/auth/profile
+Authorization: Bearer {{loginAdmin.response.body.data.token}}
+
+### 5. Get All Categories
+GET {{Caffera.Backend_HostAddress}}/api/categories
+Accept: application/json
+
+### 6. Get All Menus
+GET {{Caffera.Backend_HostAddress}}/api/menus?page=1&pageSize=10
+Accept: application/json
+
+### 7. Get All Tables
+GET {{Caffera.Backend_HostAddress}}/api/tables
+Accept: application/json
+
+### 8. Get Dashboard Stats
+GET {{Caffera.Backend_HostAddress}}/api/dashboard/stats
+Authorization: Bearer {{loginAdmin.response.body.data.token}}
+
+### 9. Get Sales Summary
+GET {{Caffera.Backend_HostAddress}}/api/sales/summary
+Authorization: Bearer {{loginAdmin.response.body.data.token}}

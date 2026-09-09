@@ -12,15 +12,25 @@ public class SalesService : ISalesService
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IRepository<OrderItem> _orderItemRepository;
+    private readonly ILogger<SalesService> _logger;
 
-    public SalesService(IOrderRepository orderRepository, IRepository<OrderItem> orderItemRepository)
+    public SalesService(
+        IOrderRepository orderRepository, 
+        IRepository<OrderItem> orderItemRepository,
+        ILogger<SalesService> logger)
     {
         _orderRepository = orderRepository;
         _orderItemRepository = orderItemRepository;
+        _logger = logger;
     }
 
     public async Task<ApiResponse<PagedResult<OrderDto>>> GetSalesHistoryAsync(OrderFilterParams filterParams)
     {
+        _logger.LogInformation("[SALES] 📋 Mengambil riwayat penjualan (Page: {Page}, Size: {Size}, Date: {Start} s/d {End})",
+            filterParams.PageNumber, filterParams.PageSize, 
+            filterParams.StartDate?.ToString("yyyy-MM-dd") ?? "Awal", 
+            filterParams.EndDate?.ToString("yyyy-MM-dd") ?? "Sekarang");
+
         var query = _orderRepository.Query()
             .Include(o => o.User)
             .Include(o => o.Table)
@@ -112,6 +122,9 @@ public class SalesService : ISalesService
 
     public async Task<ApiResponse<SalesSummaryDto>> GetSalesSummaryAsync(DateTime? startDate, DateTime? endDate)
     {
+        _logger.LogInformation("[SALES] 📊 Menghitung ringkasan penjualan (Periode: {Start} s/d {End})",
+            startDate?.ToString("yyyy-MM-dd") ?? "Awal", endDate?.ToString("yyyy-MM-dd") ?? "Sekarang");
+
         var query = _orderRepository.Query()
             .Where(o => o.Status == "Completed")
             .AsQueryable();
@@ -136,6 +149,9 @@ public class SalesService : ISalesService
         var totalItemsSold = await _orderItemRepository.Query()
             .Where(oi => orderIds.Contains(oi.OrderId))
             .SumAsync(oi => oi.Quantity);
+
+        _logger.LogInformation("[SALES] 💰 Ringkasan: Total Omset: Rp {Revenue:N0}, Total Transaksi: {Orders}, Total Item Terjual: {Items}",
+            totalRevenue, totalOrders, totalItemsSold);
 
         var summary = new SalesSummaryDto
         {
