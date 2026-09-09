@@ -7,8 +7,8 @@ import {
   INITIAL_ORDERS,
 } from './mockData';
 
-// API Base URL config (ASP.NET Core Web API default port 5066)
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5066/api';
+// API Base URL config (use relative /api to work seamlessly with Vercel and local dev proxies)
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
