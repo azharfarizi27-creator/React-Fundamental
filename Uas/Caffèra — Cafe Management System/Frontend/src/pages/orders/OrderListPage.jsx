@@ -121,7 +121,7 @@ export const OrderListPage = () => {
           icon={<Plus className="w-4 h-4" />}
           className="uppercase tracking-wider font-extrabold text-xs"
         >
-          + Buat Pesanan Baru
+          Buat Pesanan Baru
         </Button>
       </div>
 

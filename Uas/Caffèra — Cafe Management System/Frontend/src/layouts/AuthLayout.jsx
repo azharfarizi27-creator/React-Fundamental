@@ -42,7 +42,7 @@ export const AuthLayout = () => {
 
           {/* Footer Note */}
           <div className="relative z-10 text-[11px] text-stone-500 border-t border-stone-800 pt-4">
-            UAS React Fundamental • Fullstack ASP.NET Core & React
+            Caffèra — Cafe Management System & POS
           </div>
         </div>
 

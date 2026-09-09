@@ -1,11 +1,11 @@
-# ☕ Caffèra — Modern Cafe Management System & Point of Sales (POS)
+# Caffèra — Modern Cafe Management System & Point of Sales (POS)
 
 > **Proyek Akhir / UAS Pelatihan React Fundamental**  
-> Aplikasi Web Manajemen Operasional Café & Kasir POS berbasis **React 18, Vite, Tailwind CSS v3, React Router DOM v6, React Context API**, didukung oleh **ASP.NET Core 9 REST API** dan dilengkapi fitur tangguh **Dual-Engine LocalStorage Mock Database**.
+> Aplikasi Web Manajemen Operasional Café & Kasir POS berbasis **React 18, Vite, Tailwind CSS v3, React Router DOM v6, React Context API**, didukung oleh **ASP.NET Core 9 REST API** dan database live di MonsterASP.
 
 ---
 
-## 📌 Identitas Proyek
+## Identitas Proyek
 
 * **Nama Pengembang:** Azhar Farizi
 * **Tema Proyek:** Sistem Manajemen Kafe & Point of Sales (POS)
@@ -15,7 +15,7 @@
 
 ---
 
-## 📖 A. Tentang Aplikasi
+## A. Tentang Aplikasi
 
 **Caffèra** adalah platform manajemen operasional kafe terpadu yang dirancang dengan konsep antarmuka *Clean Studio Editorial* (terinspirasi dari tipografi modern, palet warm-amber, dan layout minimalis responsif). 
 
@@ -27,23 +27,21 @@ Aplikasi ini mendigitalisasi seluruh rantai operasional kafe dari hulu ke hilir:
 
 ---
 
-## ✨ B. Daftar Fitur Unggulan
+## B. Daftar Fitur Unggulan
 
-### 1. 🔐 Modul Autentikasi & Role-Based Access Control (RBAC)
-* **3 Role Pengguna:**
+### 1. Modul Autentikasi & Role-Based Access Control (RBAC)
+* **2 Role Pengguna Utama:**
   * **Admin:** Akses penuh ke seluruh fitur (Menu, Kategori, Meja, Pesanan, Laporan Penjualan, dan Kelola Staf).
-  * **Cashier:** Akses operasional kasir (POS Checkout, Manajemen Status Meja, dan List Pesanan).
-  * **Kitchen:** Akses khusus dapur (otomatis diarahkan ke *Kitchen Display System / KDS*).
-* **1-Click Quick Demo Login:** Tombol login instan untuk Admin, Cashier, dan Kitchen guna mempermudah proses penilaian.
-* **Header Role Switcher:** Dropdown cepat pada header untuk berpindah role secara instan tanpa perlu logout-login ulang.
+  * **Cashier:** Akses operasional kasir (POS Checkout, Manajemen Status Meja, List Pesanan, dan KDS).
+* **1-Click Quick Demo Login:** Tombol login instan untuk Admin dan Cashier guna mempermudah proses pengujian.
 * **Session Persistence:** Penyimpanan token autentikasi aman dengan *Protected Route Guard*.
 
-### 2. 📊 Modul Dashboard Analitik Operasional
+### 2. Modul Dashboard Analitik Operasional
 * Kartu metrik *real-time*: Total Pendapatan Hari Ini, Pesanan Aktif, Total Menu, dan Okupansi Meja.
 * Grafik visual batang (*bar chart*) tren omset 7 hari terakhir.
 * Daftar produk terlaris (*Top Selling Items*) dan tabel transaksi pesanan terbaru.
 
-### 3. 🍽️ Modul Katalog Menu (CRUD Lengkap + Filter Canggih)
+### 3. Modul Katalog Menu (CRUD Lengkap + Filter Canggih)
 * **CRUD Penuh:** Tambah menu baru, edit informasi & gambar, serta hapus menu dengan konfirmasi.
 * **Pencarian Real-Time:** Filter instan berdasarkan nama menu atau deskripsi menggunakan `.filter()`.
 * **Filter Kategori (Pill Tabs):** Pengelompokan cepat (*Semua, Coffee, Non-Coffee, Pastry, Main Course, dll.*).
@@ -51,26 +49,26 @@ Aplikasi ini mendigitalisasi seluruh rantai operasional kafe dari hulu ke hilir:
 * **Paginasi Dinamis:** Perhitungan halaman otomatis (`Math.ceil()`) dengan tombol *Previous/Next* responsif.
 * **Halaman Detail Menu:** Rute dinamis `/menus/:id` memanfaatkan hook `useParams()`.
 
-### 4. 🏷️ Modul Kategori Produk
+### 4. Modul Kategori Produk
 * Modal CRUD Kategori (Tambah, Edit, Hapus kategori).
 * Indikator jumlah menu aktif yang terdaftar di setiap kategori.
 
-### 5. 🪑 Modul Denah Meja & Okupansi Real-Time
+### 5. Modul Denah Meja & Okupansi Real-Time
 * Visual denah meja kafe dengan indikator status:
-  * 🟢 **Available (Kosong)**
-  * 🟡 **Occupied (Terisi)**
-  * 🟣 **Reserved (Dipesan)**
+  * **Available (Kosong)**
+  * **Occupied (Terisi)**
+  * **Reserved (Dipesan)**
 * Modal ubah status meja cepat (*Quick Status Update*).
 * Tombol *Direct POS Checkout* langsung dari kartu meja.
 * Modal QR Code Meja untuk akses mandiri pelanggan (*Self-Order QR*).
 
-### 6. 📱 Modul Customer Self-Order Meja (Tanpa Login)
+### 6. Modul Customer Self-Order Meja (Tanpa Login)
 * Rute publik `/table-order/:tableNumber` (bisa diakses tamu melalui scan QR meja).
 * Antarmuka *mobile-first* yang intuitif untuk memilih makanan & minuman.
 * Keranjang tamu mandiri dengan catatan khusus porsi (*notes*).
 * Pesanan yang dikirim tamu otomatis langsung masuk ke antrean **Kitchen Display System (KDS)**.
 
-### 7. 💳 Modul Point of Sales (POS Kasir & Checkout)
+### 7. Modul Point of Sales (POS Kasir & Checkout)
 * Katalog menu visual 2-kolom dengan integrasi keranjang belanja kasir.
 * Pengaturan kuantiti (+ / -), custom notes per item, dan hapus item.
 * Opsi pesanan: **Dine In** (wajib pilih nomor meja) atau **Take Away** (bungkus).
@@ -78,33 +76,33 @@ Aplikasi ini mendigitalisasi seluruh rantai operasional kafe dari hulu ke hilir:
 * **Voucher Promo Diskon:** Input kode kupon potongan harga (*DISKON10*, *HEMAT20*, *CAFFERALOVER*).
 * **Modal Multi-Pembayaran:** Mendukung metode **Tunai (Cash)** dengan kalkulator uang kembalian, **QRIS**, dan **Kartu Debit**.
 
-### 8. 👨‍🍳 Modul Kitchen Display System (KDS Dapur)
+### 8. Modul Kitchen Display System (KDS Dapur)
 * Papan **Kanban 3 Kolom Alur Masak**:
-  1. `Baru Masuk (Pending)` $\rightarrow$ Tombol *Mulai Masak*
-  2. `Sedang Dimasak (Preparing)` $\rightarrow$ Tombol *Siap Saji*
-  3. `Siap Disajikan (Ready)` $\rightarrow$ Tombol *Diantar / Selesai*
+  1. `Baru Masuk (Pending)` -> Tombol *Mulai Masak*
+  2. `Sedang Dimasak (Preparing)` -> Tombol *Siap Saji*
+  3. `Siap Disajikan (Ready)` -> Tombol *Diantar / Selesai*
 * **Real-time Auto-Polling (4 Detik)**: Memperbarui antrean otomatis tanpa refresh manual.
 * **Web Audio Chime Notifikasi**: Membunyikan nada lonceng otomatis saat ada pesanan baru masuk dari kasir atau self-order meja.
 * Jam digital *live* dan durasi waktu tunggu pesanan (*elapsed time*).
 
-### 9. 🧾 Modul Riwayat Pesanan & Cetak Struk Kasir
+### 9. Modul Riwayat Pesanan & Cetak Struk Kasir
 * Daftar riwayat seluruh pesanan dengan filter status dan tipe order.
 * Halaman rincian pesanan `/orders/:id`.
 * Modal cetak struk nota kasir digital (*Digital Receipt Modal*) dengan format struk belanja kafe standar.
 
-### 10. 📈 Modul Laporan Penjualan & Keuangan (Admin Only)
+### 10. Modul Laporan Penjualan & Keuangan (Admin Only)
 * Filter rentang tanggal transaksi (*Date Range Picker*).
 * Metrik finansial: Total Omset Kotor, Total Transaksi Selesai, dan **Average Order Value (AOV)**.
 * Tabel audit seluruh transaksi sukses.
 
-### 11. 👥 Modul Manajemen Staf / Karyawan (Admin Only)
-* Daftar staf kafe, informasi akun, jabatan/role (*Admin, Cashier, Kitchen*), dan status aktif.
+### 11. Modul Manajemen Staf / Karyawan (Admin Only)
+* Daftar staf kafe, informasi akun, jabatan/role (*Admin, Cashier*), dan status aktif.
 
 ---
 
-## 🛠️ C. Teknologi & Library yang Digunakan
+## C. Teknologi & Library yang Digunakan
 
-### 🖥️ Frontend Stack
+### Frontend Stack
 | Kategori | Teknologi / Library | Kegunaan |
 | :--- | :--- | :--- |
 | **Core Framework** | **React 18** (`react`, `react-dom`) | Library UI berbasis komponen fungsional |
@@ -118,7 +116,7 @@ Aplikasi ini mendigitalisasi seluruh rantai operasional kafe dari hulu ke hilir:
 | **Class Utilities** | `clsx`, `tailwind-merge` | Penggabungan class conditional yang aman |
 | **Deployment** | **Vercel** (`vercel.json`) | Single Page Application (SPA) URL rewrite configuration |
 
-### ⚙️ Backend Stack (Opsional)
+### Backend Stack (Opsional)
 | Kategori | Teknologi / Library | Kegunaan |
 | :--- | :--- | :--- |
 | **Framework & Runtime** | **ASP.NET Core 9 Web API** (.NET 9 / C#) | Backend RESTful API berperforma tinggi |
@@ -129,7 +127,7 @@ Aplikasi ini mendigitalisasi seluruh rantai operasional kafe dari hulu ke hilir:
 
 ---
 
-## 📁 D. Struktur Folder Proyek
+## D. Struktur Folder Proyek
 
 ```
 Caffèra/
@@ -152,7 +150,7 @@ Caffèra/
     │   │   ├── order/               # OrderItemCard, OrderReceiptModal, OrderStatusBadge, PaymentModal
     │   │   └── table/               # TableCard, TableStatusModal, TableQrModal
     │   ├── context/
-    │   │   ├── AuthContext.jsx      # Autentikasi, JWT, Role Switcher (Admin/Cashier/Kitchen)
+    │   │   ├── AuthContext.jsx      # Autentikasi, JWT
     │   │   ├── OrderContext.jsx     # POS Cart state, PB1 Tax, Voucher Diskon, Kalkulasi Total
     │   │   └── ToastContext.jsx     # Global toast notification provider
     │   ├── layouts/
@@ -174,7 +172,7 @@ Caffèra/
     │   │   ├── AppRoutes.jsx        # Deklarasi seluruh routing aplikasi
     │   │   └── ProtectedRoute.jsx   # Route guard berbasis hak akses Role
     │   ├── services/
-    │   │   ├── api.js               # Axios instance + LocalStorage Fallback Mock Engine
+    │   │   ├── api.js               # Axios instance + MonsterASP Cloud API
     │   │   ├── authService.js, menuService.js, orderService.js, tableService.js, ...
     │   │   └── mockData.js          # Data awal (Seed Data)
     │   ├── utils/
@@ -191,24 +189,18 @@ Caffèra/
 
 ---
 
-## 🚀 E. Panduan Menjalankan Aplikasi
+## E. Panduan Menjalankan Aplikasi
 
-### 1. Menjalankan Frontend (Cepat & Mandiri)
-
-Frontend dilengkapi dengan **LocalStorage Mock Engine**, sehingga dapat langsung dijalankan tanpa harus menginstal database/backend eksternal:
+### 1. Menjalankan Frontend
 
 ```bash
 # 1. Masuk ke direktori Frontend
 cd Frontend
 
-# 2. Install dependencies (bisa menggunakan pnpm atau npm)
-pnpm install
-# atau
+# 2. Install dependencies
 npm install
 
 # 3. Jalankan development server
-pnpm dev
-# atau
 npm run dev
 ```
 
@@ -216,53 +208,34 @@ Buka browser pada alamat: **`http://localhost:5173`**
 
 ---
 
-### 2. Menjalankan Backend ASP.NET Core (Opsional)
+### 2. Backend ASP.NET Core & Database Live
 
-Jika ingin menghubungkan Frontend dengan backend ASP.NET Core 9 dan database SQL Server:
-
-```bash
-# 1. Masuk ke direktori Backend
-cd Backend
-
-# 2. Restore dependensi .NET
-dotnet restore
-
-# 3. Jalankan migrasi database SQL Server
-dotnet ef database update
-
-# 4. Jalankan server API
-dotnet run
-```
-
-* **Swagger UI API Docs:** `http://localhost:5066/swagger`
-* **Base API URL:** `http://localhost:5066/api`
-
-> *Catatan: Jika Backend tidak dijalankan, Frontend secara otomatis 100% beralih ke **LocalStorage Mock Engine** sehingga seluruh fitur CRUD, login, POS, QR Self-Order, KDS dapur, dan laporan tetap berfungsi lancar tanpa error.*
+Frontend telah terhubung secara live ke backend ASP.NET Core yang dideploy di MonsterASP:
+* **API Base URL:** `http://caffera.runasp.net/api`
+* **Swagger UI API Docs:** `http://caffera.runasp.net/swagger/index.html`
 
 ---
 
-## 🔑 F. Akun Demo Pengujian & Penilaian
+## F. Akun Pengujian & Penilaian
 
 Gunakan tombol **1-Click Quick Demo Login** pada halaman Login atau gunakan kredensial berikut:
 
 | Role | Email | Password | Hak Akses Utama |
 | :--- | :--- | :--- | :--- |
-| **Admin** | `admin@caffera.com` | `Admin123!` | Akses Penuh ke seluruh modul (Menu, Meja, POS, KDS, Laporan, Staf) |
-| **Cashier** | `cashier@caffera.com` | `Cashier123!` | Kasir POS, Manajemen Meja, List Pesanan, dan KDS |
-| **Kitchen** | `kitchen@caffera.com` | `Kitchen123!` | Khusus Layar Dapur (KDS) & Pemrosesan Pesanan Masuk |
+| **Admin** | `admin@caffera.com` | `admin123` | Akses Penuh ke seluruh modul (Menu, Meja, POS, KDS, Laporan, Staf) |
+| **Cashier** | `cashier@caffera.com` | `cashier123` | Kasir POS, Manajemen Meja, List Pesanan, dan KDS |
 
 ---
 
-## 🎟️ G. Kode Voucher Promo POS (Testing Diskon)
+## G. Kode Voucher Promo POS (Testing Diskon)
 
 Masukkan kode berikut pada modal pembayaran kasir POS untuk menguji fitur diskon:
-* **`DISKON10`** : Potongan diskon 10% dari total pesanan.
+* **`CAFF10`** : Potongan diskon 10% dari total pesanan.
 * **`HEMAT20`** : Potongan langsung Rp 20.000.
-* **`CAFFERALOVER`** : Potongan spesial member Rp 50.000.
 
 ---
 
-## 🎯 H. Pemetaan Checklist Ketentuan Proyek React Fundamental
+## H. Pemetaan Checklist Ketentuan Proyek React Fundamental
 
 Seluruh kriteria teknis kurikulum React Fundamental telah terpenuhi 100%:
 

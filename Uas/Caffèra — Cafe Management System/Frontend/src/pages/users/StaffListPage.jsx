@@ -189,7 +189,7 @@ export const StaffListPage = () => {
           icon={<Plus className="w-4 h-4" />}
           className="uppercase tracking-wider font-extrabold text-xs"
         >
-          + Tambah Akun Staff
+          Tambah Akun Staff
         </Button>
       </div>
 
@@ -267,7 +267,7 @@ export const StaffListPage = () => {
         <EmptyState
           title="Tidak ada staff ditemukan"
           description="Coba cari dengan kata kunci lain atau daftarkan akun baru."
-          actionLabel="+ Tambah Akun Staff"
+          actionLabel="Tambah Akun Staff"
           onAction={handleOpenAddModal}
         />
       ) : (

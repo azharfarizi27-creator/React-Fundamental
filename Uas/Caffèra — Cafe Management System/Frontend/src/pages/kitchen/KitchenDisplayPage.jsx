@@ -1,4 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  Clock,
+  Volume2,
+  VolumeX,
+  RefreshCw,
+  ChefHat,
+  Bell,
+  CheckCircle2,
+} from 'lucide-react';
 import { orderService } from '../../services/orderService';
 import { formatRupiah } from '../../utils/formatters';
 
@@ -126,28 +135,40 @@ export const KitchenDisplayPage = () => {
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Live Clock */}
-          <div className="bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs font-mono text-[#fbb710]">
-            🕒 {currentTime.toLocaleTimeString('id-ID')}
+          <div className="bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs font-mono text-[#fbb710] flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-[#fbb710]" />
+            <span>{currentTime.toLocaleTimeString('id-ID')}</span>
           </div>
 
           {/* Sound Toggle */}
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className={`px-3 py-1.5 text-xs font-bold uppercase transition flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 text-xs font-bold uppercase transition flex items-center gap-1.5 cursor-pointer ${
               soundEnabled
                 ? 'bg-neutral-800 text-white hover:bg-neutral-700'
                 : 'bg-red-950 text-red-300 border border-red-800'
             }`}
           >
-            {soundEnabled ? '🔔 Notif Suara ON' : '🔕 Notif Suara OFF'}
+            {soundEnabled ? (
+              <>
+                <Volume2 className="w-3.5 h-3.5" />
+                <span>Notif Suara ON</span>
+              </>
+            ) : (
+              <>
+                <VolumeX className="w-3.5 h-3.5" />
+                <span>Notif Suara OFF</span>
+              </>
+            )}
           </button>
 
           {/* Manual Refresh */}
           <button
             onClick={() => fetchOrders(false)}
-            className="bg-[#fbb710] text-black hover:bg-yellow-400 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition"
+            className="bg-[#fbb710] text-black hover:bg-yellow-400 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer"
           >
-            🔄 Refresh
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Refresh</span>
           </button>
         </div>
       </div>
@@ -253,9 +274,10 @@ export const KitchenDisplayPage = () => {
                   {/* Action Button */}
                   <button
                     onClick={() => handleUpdateStatus(order.id, 'Preparing')}
-                    className="w-full mt-2 bg-amber-500 hover:bg-amber-600 text-black font-black text-xs py-2.5 uppercase tracking-wider transition flex items-center justify-center gap-1.5"
+                    className="w-full mt-2 bg-amber-500 hover:bg-amber-600 text-black font-black text-xs py-2.5 uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <span>👨‍🍳 Mulai Masak</span>
+                    <ChefHat className="w-4 h-4" />
+                    <span>Mulai Masak</span>
                   </button>
                 </div>
               ))
@@ -322,15 +344,16 @@ export const KitchenDisplayPage = () => {
                   <div className="grid grid-cols-2 gap-2 mt-2">
                     <button
                       onClick={() => handleUpdateStatus(order.id, 'Pending')}
-                      className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-bold text-[11px] py-2 uppercase transition"
+                      className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-bold text-[11px] py-2 uppercase transition cursor-pointer"
                     >
                       Kembali
                     </button>
                     <button
                       onClick={() => handleUpdateStatus(order.id, 'Ready')}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] py-2 uppercase tracking-wider transition"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] py-2 uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      🛎️ Siap Saji
+                      <Bell className="w-3.5 h-3.5" />
+                      <span>Siap Saji</span>
                     </button>
                   </div>
                 </div>
@@ -397,9 +420,10 @@ export const KitchenDisplayPage = () => {
                   {/* Action Button: Selesai / Diantar */}
                   <button
                     onClick={() => handleUpdateStatus(order.id, 'Completed')}
-                    className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2.5 uppercase tracking-wider transition flex items-center justify-center gap-1.5"
+                    className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2.5 uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <span>✅ Diantar / Selesai</span>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Diantar / Selesai</span>
                   </button>
                 </div>
               ))

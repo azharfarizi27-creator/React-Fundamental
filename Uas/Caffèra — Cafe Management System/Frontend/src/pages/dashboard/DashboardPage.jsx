@@ -97,8 +97,6 @@ export const DashboardPage = () => {
           subtitle="Total omset dari order aktif & selesai"
           icon={<DollarSign className="w-6 h-6 text-stone-950" />}
           iconBg="bg-[#fbb710]/20 border border-[#fbb710]/40"
-          trend="+14.2%"
-          trendType="up"
         />
 
         <StatCard
@@ -107,8 +105,6 @@ export const DashboardPage = () => {
           subtitle="Transaksi masuk hari ini"
           icon={<ShoppingBag className="w-6 h-6 text-stone-950" />}
           iconBg="bg-stone-100 border border-stone-200"
-          trend="+8.5%"
-          trendType="up"
         />
 
         <StatCard
@@ -152,7 +148,9 @@ export const DashboardPage = () => {
             {/* Visual Bar Chart */}
             <div className="h-48 flex items-end justify-between gap-2 sm:gap-4 pt-6 pb-2 px-2 border-b border-stone-100">
               {(stats?.salesLast7Days || []).map((day, idx) => {
-                const heightPercent = Math.max(15, Math.round((day.totalRevenue / maxRevenue) * 100));
+                const heightPercent = maxRevenue > 0 && day.totalRevenue > 0
+                  ? Math.max(12, Math.round((day.totalRevenue / maxRevenue) * 100))
+                  : 6;
                 return (
                   <div
                     key={idx}
@@ -165,7 +163,11 @@ export const DashboardPage = () => {
 
                     {/* Bar */}
                     <div
-                      className="w-full max-w-[42px] bg-[#fbb710] group-hover:bg-[#e59e07] transition-all duration-300 shadow-xs"
+                      className={`w-full max-w-[42px] transition-all duration-300 shadow-xs ${
+                        day.totalRevenue > 0
+                          ? 'bg-[#fbb710] group-hover:bg-[#e59e07]'
+                          : 'bg-stone-200 group-hover:bg-stone-300'
+                      }`}
                       style={{ height: `${heightPercent}%` }}
                     />
 
@@ -180,7 +182,7 @@ export const DashboardPage = () => {
           </div>
 
           <div className="mt-4 flex items-center justify-between text-xs text-stone-500 pt-2">
-            <span>Rata-rata Harian: ~Rp 450.000</span>
+            <span>Data grafik terhubung real-time dengan server database</span>
             <button
               onClick={() => navigate('/sales')}
               className="font-bold text-stone-950 hover:text-[#e59e07] inline-flex items-center gap-1 cursor-pointer transition-colors"
@@ -201,38 +203,46 @@ export const DashboardPage = () => {
             </div>
 
             <div className="space-y-3">
-              {(stats?.topSellingMenus || []).map((menu, idx) => (
-                <div
-                  key={menu.menuId}
-                  className="flex items-center justify-between p-2.5 bg-stone-50 hover:bg-[#fbb710]/10 border border-stone-100 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`w-6 h-6 flex items-center justify-center text-xs font-black ${
-                        idx === 0
-                          ? 'bg-[#fbb710] text-stone-950'
-                          : idx === 1
-                          ? 'bg-stone-900 text-white'
-                          : 'bg-stone-200 text-stone-700'
-                      }`}
-                    >
-                      {idx + 1}
-                    </span>
-                    <div>
-                      <h4 className="text-xs font-bold text-stone-950 line-clamp-1">
-                        {menu.menuName}
-                      </h4>
-                      <p className="text-[10px] text-stone-500">
-                        Terjual: <span className="font-bold text-stone-800">{menu.totalQuantitySold} porsi</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-xs font-black text-stone-950 shrink-0">
-                    {formatRupiah(menu.totalRevenue)}
-                  </p>
+              {(!stats?.topSellingMenus || stats.topSellingMenus.length === 0) ? (
+                <div className="text-center py-10 bg-stone-50 border border-dashed border-stone-200 p-4">
+                  <Coffee className="w-6 h-6 text-stone-300 mx-auto mb-2" />
+                  <p className="text-xs font-bold text-stone-600">Belum ada transaksi</p>
+                  <p className="text-[10px] text-stone-400 mt-0.5">Penjualan menu terlaris akan otomatis tampil di sini</p>
                 </div>
-              ))}
+              ) : (
+                stats.topSellingMenus.map((menu, idx) => (
+                  <div
+                    key={menu.menuId}
+                    className="flex items-center justify-between p-2.5 bg-stone-50 hover:bg-[#fbb710]/10 border border-stone-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`w-6 h-6 flex items-center justify-center text-xs font-black ${
+                          idx === 0
+                            ? 'bg-[#fbb710] text-stone-950'
+                            : idx === 1
+                            ? 'bg-stone-900 text-white'
+                            : 'bg-stone-200 text-stone-700'
+                        }`}
+                      >
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <h4 className="text-xs font-bold text-stone-950 line-clamp-1">
+                          {menu.menuName}
+                        </h4>
+                        <p className="text-[10px] text-stone-500">
+                          Terjual: <span className="font-bold text-stone-800">{menu.totalQuantitySold} porsi</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="text-xs font-black text-stone-950 shrink-0">
+                      {formatRupiah(menu.totalRevenue)}
+                    </p>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -266,7 +276,7 @@ export const DashboardPage = () => {
 
         {/* Table container */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[580px]">
             <thead>
               <tr className="border-b border-stone-200 text-stone-400 font-bold uppercase tracking-wider">
                 <th className="py-3 px-3">No. Order</th>
@@ -279,43 +289,53 @@ export const DashboardPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 text-stone-700">
-              {(stats?.recentOrders || []).map((order) => (
-                <tr key={order.id} className="hover:bg-[#fbb710]/5 transition-colors">
-                  <td className="py-3 px-3 font-bold text-stone-950 font-mono">
-                    {order.orderNumber}
-                  </td>
-                  <td className="py-3 px-3 font-medium">
-                    {order.orderType === 'DineIn' ? (
-                      <span className="inline-flex items-center gap-1 text-stone-900 font-bold">
-                        <Grid className="w-3 h-3 text-[#e59e07]" />
-                        Meja #{order.tableNumber}
-                      </span>
-                    ) : (
-                      <span className="text-stone-500 font-bold">Take Away</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-3 font-medium">{order.userName || 'Staff'}</td>
-                  <td className="py-3 px-3 text-stone-500 flex items-center gap-1 mt-1">
-                    <Clock className="w-3 h-3" />
-                    <span>{formatDateTime(order.createdAt)}</span>
-                  </td>
-                  <td className="py-3 px-3 font-black text-stone-950">
-                    {formatRupiah(order.totalAmount)}
-                  </td>
-                  <td className="py-3 px-3">
-                    <OrderStatusBadge status={order.status} />
-                  </td>
-                  <td className="py-3 px-3 text-right">
-                    <button
-                      onClick={() => navigate(`/orders/${order.id}`)}
-                      className="p-1.5 text-stone-600 hover:text-stone-950 hover:bg-stone-100 transition-colors inline-flex items-center gap-1 font-bold text-[11px] cursor-pointer"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      <span>Detail</span>
-                    </button>
+              {(!stats?.recentOrders || stats.recentOrders.length === 0) ? (
+                <tr>
+                  <td colSpan={7} className="py-10 text-center text-stone-400">
+                    <ShoppingBag className="w-6 h-6 text-stone-300 mx-auto mb-2" />
+                    <p className="text-xs font-bold text-stone-600">Belum ada pesanan hari ini</p>
+                    <p className="text-[11px] text-stone-400 mt-0.5">Pesanan baru dari kasir POS atau QR Self-Order akan muncul di sini</p>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                stats.recentOrders.map((order) => (
+                  <tr key={order.id} className="hover:bg-[#fbb710]/5 transition-colors">
+                    <td className="py-3 px-3 font-bold text-stone-950 font-mono">
+                      {order.orderNumber}
+                    </td>
+                    <td className="py-3 px-3 font-medium">
+                      {order.orderType === 'DineIn' ? (
+                        <span className="inline-flex items-center gap-1 text-stone-900 font-bold">
+                          <Grid className="w-3 h-3 text-[#e59e07]" />
+                          Meja #{order.tableNumber}
+                        </span>
+                      ) : (
+                        <span className="text-stone-500 font-bold">Take Away</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-3 font-medium">{order.userName || 'Staff'}</td>
+                    <td className="py-3 px-3 text-stone-500 flex items-center gap-1 mt-1">
+                      <Clock className="w-3 h-3" />
+                      <span>{formatDateTime(order.createdAt)}</span>
+                    </td>
+                    <td className="py-3 px-3 font-black text-stone-950">
+                      {formatRupiah(order.totalAmount)}
+                    </td>
+                    <td className="py-3 px-3">
+                      <OrderStatusBadge status={order.status} />
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <button
+                        onClick={() => navigate(`/orders/${order.id}`)}
+                        className="p-1.5 text-stone-600 hover:text-stone-950 hover:bg-stone-100 transition-colors inline-flex items-center gap-1 font-bold text-[11px] cursor-pointer"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Detail</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

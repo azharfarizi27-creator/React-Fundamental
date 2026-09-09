@@ -241,141 +241,142 @@ export const CreateOrderPage = () => {
         </div>
 
         {/* Right Side: Active Order Cart (5 Cols) */}
-        <div className="lg:col-span-5 sticky top-20">
-          <div className="border border-stone-200 bg-white p-6 shadow-xs">
+        <div id="order-cart-section" className="lg:col-span-5 lg:sticky lg:top-20">
+          <div className="border border-stone-200 bg-white p-4 sm:p-6 shadow-xs">
             {/* Cart Header */}
             <div className="flex items-center justify-between pb-4 border-b border-stone-100">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-[#fbb710]" />
                 <h3 className="font-black text-base text-stone-950 uppercase tracking-wider">
-                  Keranjang Pesanan
+                  Pesanan Aktif ({totalItemCount})
                 </h3>
               </div>
-              <span className="px-2.5 py-1 bg-[#fbb710]/20 text-stone-950 text-xs font-black">
-                {totalItemCount} Item
-              </span>
+              {cartItems.length > 0 && (
+                <button
+                  type="button"
+                  onClick={clearCart}
+                  className="text-stone-400 hover:text-rose-600 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Kosongkan</span>
+                </button>
+              )}
             </div>
 
-            {/* Order Type & Table Selection */}
-            <div className="py-4 space-y-3 border-b border-stone-100">
-              {/* Dine In vs Take Away Switch */}
-              <div className="grid grid-cols-2 gap-2 p-1 bg-stone-100">
+            {/* Order Settings (Type, Customer, Table) */}
+            <div className="py-4 border-b border-stone-100 space-y-3">
+              {/* Type Switcher */}
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setOrderType('DineIn')}
-                  className={`py-2 text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
+                  className={`py-2 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                     orderType === 'DineIn'
-                      ? 'bg-white text-stone-950 shadow-xs'
-                      : 'text-stone-500 hover:text-stone-900'
+                      ? 'bg-stone-950 text-white shadow-xs'
+                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                   }`}
                 >
-                  🍽️ Dine In
+                  Dine In (Makan di Tempat)
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setOrderType('TakeAway');
-                    selectTable(null, null);
-                  }}
-                  className={`py-2 text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
+                  onClick={() => setOrderType('TakeAway')}
+                  className={`py-2 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                     orderType === 'TakeAway'
-                      ? 'bg-white text-stone-950 shadow-xs'
-                      : 'text-stone-500 hover:text-stone-900'
+                      ? 'bg-stone-950 text-white shadow-xs'
+                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                   }`}
                 >
-                  🥡 Take Away
+                  Take Away (Bungkus)
                 </button>
               </div>
 
-              {/* Table Selector (if DineIn) */}
-              {orderType === 'DineIn' && (
-                <div>
-                  <label className="block text-[10px] font-black text-stone-600 uppercase tracking-widest mb-1">
-                    Pilih Nomor Meja <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={tableId || ''}
-                    onChange={(e) => {
-                      const id = e.target.value ? Number(e.target.value) : null;
-                      const matched = tables.find((t) => t.id === id);
-                      selectTable(id, matched ? matched.number : null);
-                    }}
-                    className="w-full px-3 py-2 text-xs font-bold text-stone-900 bg-stone-50 border border-stone-200 focus:bg-white focus:border-[#fbb710] focus:outline-none transition-all cursor-pointer"
-                  >
-                    <option value="">-- Pilih Nomor Meja --</option>
-                    {tables.map((tbl) => (
-                      <option key={tbl.id} value={tbl.id}>
-                        Meja #{tbl.number} (Kapasitas {tbl.capacity} org) — [{tbl.status}]
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Customer Name (Optional) */}
+              {/* Customer Name */}
               <div>
-                <label className="block text-[10px] font-black text-stone-600 uppercase tracking-widest mb-1">
+                <label className="block text-[10px] font-bold text-stone-500 uppercase mb-1">
                   Nama Pelanggan (Opsional)
                 </label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="e.g. Mas Rian / Meja Pojok"
-                  className="w-full px-3 py-2 text-xs font-semibold bg-stone-50 border border-stone-200 focus:bg-white focus:border-[#fbb710] focus:outline-none"
+                  placeholder="Contoh: Budi / Meja Depan"
+                  className="w-full px-3 py-2 text-xs bg-stone-50 border border-stone-200 focus:outline-none focus:border-[#fbb710] focus:bg-white transition-colors"
                 />
               </div>
+
+              {/* Table Selector (If Dine In) */}
+              {orderType === 'DineIn' && (
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-500 uppercase mb-1">
+                    Pilih Nomor Meja <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-5 gap-1.5 max-h-36 overflow-y-auto p-1 border border-stone-100 bg-stone-50">
+                    {tables.map((t) => {
+                      const isSelected = tableId === t.id;
+                      const isOccupied = t.status === 'Occupied';
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => selectTable(t.id, t.number)}
+                          className={`py-2 text-center text-xs font-black transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#fbb710] text-stone-950 ring-2 ring-stone-950'
+                              : isOccupied
+                              ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                              : 'bg-white border border-stone-200 text-stone-800 hover:border-stone-950'
+                          }`}
+                        >
+                          #{t.number}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {!tableId && (
+                    <p className="text-[10px] font-bold text-rose-500 mt-1">
+                      Wajib memilih meja untuk pesanan Dine In
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Cart Items List */}
-            <div className="py-3 max-h-64 overflow-y-auto space-y-2.5">
+            <div className="py-4 space-y-3 max-h-64 overflow-y-auto">
               {cartItems.length === 0 ? (
-                <div className="text-center py-8 text-stone-400">
-                  <Coffee className="w-8 h-8 mx-auto mb-1 opacity-40" />
+                <div className="py-8 text-center text-stone-400 space-y-1">
+                  <ShoppingBag className="w-8 h-8 text-stone-300 mx-auto" />
                   <p className="text-xs font-bold text-stone-600">Keranjang masih kosong</p>
-                  <p className="text-[11px] text-stone-400 mt-0.5">Pilih menu di sebelah kiri untuk menambahkan</p>
+                  <p className="text-[10px]">Klik item menu di sebelah kiri untuk menambahkan pesanan.</p>
                 </div>
               ) : (
                 cartItems.map((item) => (
-                  <div
-                    key={item.menuId}
-                    className="p-2.5 bg-stone-50 border border-stone-200 space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <h5 className="text-xs font-black text-stone-950 truncate">
-                          {item.name}
-                        </h5>
-                        <p className="text-[11px] font-bold text-stone-600">
-                          {formatRupiah(item.price)}
-                        </p>
+                  <div key={item.menuId} className="p-2.5 bg-stone-50 border border-stone-100 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1 pr-2">
+                        <h4 className="text-xs font-black text-stone-950 truncate">{item.name}</h4>
+                        <p className="text-[10px] text-stone-500 font-bold">{formatRupiah(item.price)}</p>
                       </div>
 
-                      {/* Qty controls */}
+                      {/* Quantity Controls */}
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.menuId, item.quantity - 1)}
-                          className="w-6 h-6 bg-white border border-stone-300 text-stone-900 hover:bg-stone-100 flex items-center justify-center text-xs font-black cursor-pointer"
+                          className="w-6 h-6 bg-white border border-stone-200 text-stone-800 hover:bg-stone-200 font-bold text-xs flex items-center justify-center cursor-pointer"
                         >
-                          -
+                          <Minus className="w-3 h-3" />
                         </button>
-                        <span className="w-5 text-center text-xs font-black text-stone-950">
+                        <span className="w-6 text-center font-black text-xs text-stone-950">
                           {item.quantity}
                         </span>
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.menuId, item.quantity + 1)}
-                          className="w-6 h-6 bg-[#fbb710] text-stone-950 hover:bg-[#e5a607] flex items-center justify-center text-xs font-black cursor-pointer"
+                          className="w-6 h-6 bg-white border border-stone-200 text-stone-800 hover:bg-stone-200 font-bold text-xs flex items-center justify-center cursor-pointer"
                         >
-                          +
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeItem(item.menuId)}
-                          className="p-1 text-stone-400 hover:text-rose-600 transition-colors ml-1"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Plus className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
@@ -431,6 +432,43 @@ export const CreateOrderPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Floating Mobile Cart Bar (Sticky at bottom on small screens) */}
+      {totalItemCount > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 p-3 bg-stone-950/95 text-white backdrop-blur-md border-t border-stone-800 z-40 lg:hidden flex items-center justify-between shadow-2xl animate-in slide-in-from-bottom duration-200">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-[#fbb710] text-stone-950 flex items-center justify-center font-black text-xs shadow-sm shrink-0">
+              {totalItemCount}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] text-stone-400 font-bold uppercase leading-tight">Total Tagihan</p>
+              <p className="text-xs font-black text-[#fbb710] truncate">{formatRupiah(totalAmount)}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('order-cart-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="px-2.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider bg-stone-800 hover:bg-stone-700 text-stone-200 cursor-pointer"
+            >
+              Cek Item
+            </button>
+            <button
+              type="button"
+              disabled={orderType === 'DineIn' && !tableId}
+              onClick={handleOpenPaymentModal}
+              className="px-3 py-1.5 text-[11px] font-black uppercase tracking-wider bg-[#fbb710] hover:bg-[#e59e07] text-stone-950 flex items-center gap-1 shadow-xs disabled:opacity-50 cursor-pointer"
+            >
+              <span>Bayar</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Multi-Payment Modal with Cash/QRIS/Debit & Voucher */}
       <PaymentModal

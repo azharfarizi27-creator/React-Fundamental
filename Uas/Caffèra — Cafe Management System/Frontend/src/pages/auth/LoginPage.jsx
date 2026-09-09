@@ -10,8 +10,9 @@ export const LoginPage = () => {
   const { login } = useAuth();
   const { success, error } = useToast();
 
-  const [email, setEmail] = useState('admin@caffera.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [selectedTableNumber, setSelectedTableNumber] = useState('1');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -45,27 +46,6 @@ export const LoginPage = () => {
     }
   };
 
-  const handleQuickLogin = (roleEmail, rolePass) => {
-    setEmail(roleEmail);
-    setPassword(rolePass);
-    setIsLoading(true);
-    setTimeout(async () => {
-      const res = await login({ email: roleEmail, password: rolePass });
-      setIsLoading(false);
-      if (res.success) {
-        const savedUser = JSON.parse(localStorage.getItem('caffera_user') || '{}');
-        success(`Login berhasil sebagai ${savedUser.role || 'Staff'}!`);
-        if (savedUser.role === 'Kitchen' || roleEmail.includes('kitchen')) {
-          navigate('/kitchen');
-        } else {
-          navigate('/dashboard');
-        }
-      } else {
-        error(res.message || 'Login gagal');
-      }
-    }, 400);
-  };
-
   return (
     <div className="space-y-6">
       {/* Mobile Branding */}
@@ -85,54 +65,6 @@ export const LoginPage = () => {
         </p>
       </div>
 
-      {/* Demo Quick Accounts Box */}
-      <div className="p-3.5 bg-stone-50 border border-stone-200 space-y-2.5">
-        <div className="flex items-center justify-between">
-          <p className="text-[10px] font-black text-stone-600 uppercase tracking-widest">
-            Quick Login Staff (1-Click)
-          </p>
-          <span className="text-[10px] font-bold text-[#e59e07]">Cloud Live API</span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => handleQuickLogin('admin@caffera.com', 'admin123')}
-            className="p-2.5 bg-white hover:bg-[#fbb710]/15 border border-stone-200 hover:border-[#fbb710] text-left transition-colors cursor-pointer group"
-          >
-            <div className="flex items-center gap-1 text-stone-950 text-[11px] font-bold">
-              <Shield className="w-3.5 h-3.5 text-[#e59e07]" />
-              <span>Admin</span>
-            </div>
-            <p className="text-[9px] text-stone-400 mt-0.5">admin@caffera.com</p>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleQuickLogin('cashier@caffera.com', 'cashier123')}
-            className="p-2.5 bg-white hover:bg-stone-100 border border-stone-200 text-left transition-colors cursor-pointer group"
-          >
-            <div className="flex items-center gap-1 text-stone-950 text-[11px] font-bold">
-              <UserCheck className="w-3.5 h-3.5 text-blue-600" />
-              <span>Kasir</span>
-            </div>
-            <p className="text-[9px] text-stone-400 mt-0.5">cashier@caffera.com</p>
-          </button>
-        </div>
-
-        {/* Guest QR Self-Order Shortcut */}
-        <div className="pt-2 border-t border-stone-200 flex items-center justify-between text-[11px]">
-          <span className="text-stone-500 font-semibold">Tamu Meja (Tanpa Login):</span>
-          <button
-            type="button"
-            onClick={() => navigate('/table-order/1')}
-            className="text-stone-950 font-black hover:text-[#e59e07] underline transition cursor-pointer"
-          >
-            Buka QR Self-Order Meja #1 →
-          </button>
-        </div>
-      </div>
-
       {/* Form */}
       <form onSubmit={handleLogin} className="space-y-4">
         {/* Email */}
@@ -145,9 +77,10 @@ export const LoginPage = () => {
             <input
               type="email"
               value={email}
+              disabled={isLoading}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="nama@caffera.com"
-              className={`w-full pl-10 pr-3.5 py-2.5 text-sm bg-stone-50 border focus:bg-white focus:outline-none transition-all ${
+              className={`w-full pl-10 pr-3.5 py-2.5 text-sm bg-stone-50 border focus:bg-white focus:outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
                 errors.email ? 'border-rose-500' : 'border-stone-200 focus:border-[#fbb710]'
               }`}
             />
@@ -165,9 +98,10 @@ export const LoginPage = () => {
             <input
               type="password"
               value={password}
+              disabled={isLoading}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className={`w-full pl-10 pr-3.5 py-2.5 text-sm bg-stone-50 border focus:bg-white focus:outline-none transition-all ${
+              className={`w-full pl-10 pr-3.5 py-2.5 text-sm bg-stone-50 border focus:bg-white focus:outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
                 errors.password ? 'border-rose-500' : 'border-stone-200 focus:border-[#fbb710]'
               }`}
             />
@@ -182,11 +116,45 @@ export const LoginPage = () => {
           size="lg"
           className="w-full mt-2 uppercase tracking-wider font-black text-xs"
           isLoading={isLoading}
-          iconRight={<ArrowRight className="w-4 h-4" />}
+          disabled={isLoading}
+          iconRight={!isLoading && <ArrowRight className="w-4 h-4" />}
         >
-          Masuk ke Dashboard
+          {isLoading ? 'Memverifikasi Akun Staff...' : 'Masuk ke Dashboard'}
         </Button>
       </form>
+
+      {/* Guest Table Self-Order Access */}
+      <div className="pt-5 border-t border-stone-200">
+        <div className="p-4 bg-stone-50 border border-stone-200 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-stone-900">Pemesanan Mandiri Tamu Meja</span>
+            <span className="text-[10px] text-stone-400 font-mono">Tanpa Login</span>
+          </div>
+          <p className="text-[11px] text-stone-500">
+            Pilih nomor meja untuk membuka tampilan buku menu & checkout mandiri pelanggan:
+          </p>
+          <div className="flex items-center gap-2 pt-1">
+            <select
+              value={selectedTableNumber}
+              onChange={(e) => setSelectedTableNumber(e.target.value)}
+              className="flex-1 px-3 py-2 bg-white border border-stone-300 text-xs font-bold text-stone-900 focus:outline-none focus:border-[#fbb710] cursor-pointer"
+            >
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                <option key={num} value={num}>
+                  Meja #{num}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => navigate(`/table-order/${selectedTableNumber}`)}
+              className="px-4 py-2 bg-stone-950 hover:bg-stone-800 text-white font-black text-xs uppercase tracking-wider transition cursor-pointer shrink-0"
+            >
+              Buka Menu Meja →
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

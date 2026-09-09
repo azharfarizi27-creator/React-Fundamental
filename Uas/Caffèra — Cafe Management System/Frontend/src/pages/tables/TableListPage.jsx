@@ -158,7 +158,7 @@ export const TableListPage = () => {
             icon={<Plus className="w-4 h-4" />}
             className="uppercase tracking-wider font-extrabold text-xs"
           >
-            + Tambah Meja Baru
+            Tambah Meja Baru
           </Button>
         )}
       </div>
@@ -227,7 +227,7 @@ export const TableListPage = () => {
           onAction={isAdmin ? handleOpenAddTable : undefined}
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {tables.map((table) => (
             <TableCard
               key={table.id}

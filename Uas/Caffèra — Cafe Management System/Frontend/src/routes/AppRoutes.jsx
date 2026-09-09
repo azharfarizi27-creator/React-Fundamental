@@ -31,6 +31,8 @@ const DashboardRoute = () => {
 };
 
 export const AppRoutes = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <Routes>
       {/* Public Customer Self-Order Route (No Login Required) */}
@@ -41,6 +43,18 @@ export const AppRoutes = () => {
         <Route path="/login" element={<LoginPage />} />
       </Route>
 
+      {/* Root Route Redirect: Directs to /login when opening web without session */}
+      <Route
+        path="/"
+        element={
+          isAuthenticated ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
       {/* Main App Routes (Protected) */}
       <Route
         element={
@@ -49,7 +63,6 @@ export const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardRoute />} />
 
         {/* Menu Routes (Admin & Cashier) */}

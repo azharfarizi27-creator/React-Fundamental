@@ -23,14 +23,6 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('caffera_token');
         localStorage.removeItem('caffera_user');
       }
-    } else {
-      // Default to Admin user for quick frictionless demo
-      const defaultAdmin = INITIAL_USERS[0];
-      const mockToken = `mock_jwt_token_Admin_${Date.now()}`;
-      setToken(mockToken);
-      setUser(defaultAdmin);
-      localStorage.setItem('caffera_token', mockToken);
-      localStorage.setItem('caffera_user', JSON.stringify(defaultAdmin));
     }
     setLoading(false);
   }, []);
@@ -58,39 +50,6 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  // Quick switch role (Admin <-> Cashier <-> Kitchen) for grading & demo purposes
-  const switchRole = (targetRole) => {
-    const matchedUser =
-      INITIAL_USERS.find((u) => u.role.toLowerCase() === targetRole.toLowerCase()) || {
-        id: targetRole === 'Admin' ? 1 : targetRole === 'Kitchen' ? 3 : 2,
-        name:
-          targetRole === 'Admin'
-            ? 'Azhar Farizi (Admin)'
-            : targetRole === 'Kitchen'
-            ? 'Rian Barista (Kitchen)'
-            : 'Sarah Nabila (Cashier)',
-        email:
-          targetRole === 'Admin'
-            ? 'admin@caffera.com'
-            : targetRole === 'Kitchen'
-            ? 'kitchen@caffera.com'
-            : 'cashier@caffera.com',
-        role: targetRole,
-        avatar:
-          targetRole === 'Admin'
-            ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-            : targetRole === 'Kitchen'
-            ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
-            : 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-      };
-
-    const mockToken = `mock_jwt_token_${targetRole}_${Date.now()}`;
-    setUser(matchedUser);
-    setToken(mockToken);
-    localStorage.setItem('caffera_token', mockToken);
-    localStorage.setItem('caffera_user', JSON.stringify(matchedUser));
-  };
-
   const value = {
     user,
     token,
@@ -101,7 +60,6 @@ export const AuthProvider = ({ children }) => {
     isKitchen: user?.role === 'Kitchen',
     login,
     logout,
-    switchRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

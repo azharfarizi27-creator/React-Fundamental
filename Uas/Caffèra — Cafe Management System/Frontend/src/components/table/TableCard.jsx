@@ -54,12 +54,12 @@ export const TableCard = ({
       </div>
 
       {/* Center Table Visualization Graphic */}
-      <div className="my-5 py-3 flex items-center justify-between px-3 bg-stone-50 border border-stone-100">
-        <div className="flex items-center gap-2">
-          {Array.from({ length: Math.min(table.capacity, 6) }).map((_, idx) => (
+      <div className="my-4 py-2.5 flex items-center justify-between px-3 bg-stone-50 border border-stone-100 min-h-[44px]">
+        <div className="flex items-center gap-1.5 flex-wrap max-w-[120px]">
+          {Array.from({ length: Math.min(table.capacity, 8) }).map((_, idx) => (
             <div
               key={idx}
-              className={`w-2.5 h-2.5 rounded-full ${
+              className={`w-2 h-2 rounded-full shrink-0 ${
                 table.status === 'Occupied'
                   ? 'bg-[#fbb710]'
                   : table.status === 'Reserved'
@@ -75,49 +75,37 @@ export const TableCard = ({
           <button
             type="button"
             onClick={() => onViewQr(table)}
-            className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-stone-700 hover:text-black bg-white hover:bg-neutral-100 border border-stone-200 px-2 py-1 transition cursor-pointer"
+            className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-stone-700 hover:text-black bg-white hover:bg-neutral-100 border border-stone-200 px-2 py-1 transition cursor-pointer shrink-0"
             title="Lihat QR Code Meja"
           >
-            <QrCode className="w-3.5 h-3.5 text-[#fbb710]" />
+            <QrCode className="w-3 h-3 text-[#fbb710]" />
             <span>QR Menu</span>
           </button>
         )}
       </div>
 
       {/* Action Buttons */}
-      <div className="pt-3 border-t border-stone-100 flex items-center justify-between gap-2">
+      <div className="pt-3 border-t border-stone-100 flex items-center justify-between gap-1.5">
         {/* Quick status selector */}
         <button
           type="button"
           onClick={() => onSelectStatus(table)}
-          className="text-xs font-bold text-stone-700 hover:text-stone-950 bg-stone-100 hover:bg-stone-200 px-2.5 py-1.5 transition-colors cursor-pointer"
+          className="text-xs font-bold text-stone-700 hover:text-stone-950 bg-stone-100 hover:bg-stone-200 px-2.5 py-1.5 transition-colors cursor-pointer shrink-0"
         >
           Status
         </button>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           {/* Create / Add Order Button for this table */}
           {onCreateOrder && (
             <button
               type="button"
               onClick={() => onCreateOrder(table)}
-              className={`inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider px-2.5 py-1.5 transition-colors shadow-xs cursor-pointer ${
-                table.status === 'Occupied'
-                  ? 'bg-black text-white hover:bg-neutral-800'
-                  : 'bg-[#fbb710] text-stone-950 hover:bg-[#e5a607]'
-              }`}
+              className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider px-2.5 py-1.5 bg-[#fbb710] hover:bg-[#e5a607] text-stone-950 transition-colors shadow-xs cursor-pointer shrink-0"
+              title="Buka Kasir POS untuk Meja Ini"
             >
-              {table.status === 'Occupied' ? (
-                <>
-                  <PlusCircle className="w-3 h-3 text-[#fbb710]" />
-                  <span>+ Tambah</span>
-                </>
-              ) : (
-                <>
-                  <Coffee className="w-3 h-3" />
-                  <span>Order</span>
-                </>
-              )}
+              <Coffee className="w-3 h-3" />
+              <span>Order</span>
             </button>
           )}
 
@@ -125,7 +113,7 @@ export const TableCard = ({
             <button
               type="button"
               onClick={() => onEdit(table)}
-              className="p-1.5 border border-stone-200 text-stone-600 hover:text-stone-950 hover:bg-stone-100 transition-colors"
+              className="p-1.5 border border-stone-200 text-stone-600 hover:text-stone-950 hover:bg-stone-100 transition-colors shrink-0"
               title="Edit Meja"
             >
               <Edit className="w-3.5 h-3.5" />
@@ -136,7 +124,7 @@ export const TableCard = ({
             <button
               type="button"
               onClick={() => onDelete(table)}
-              className="p-1.5 border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors"
+              className="p-1.5 border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors shrink-0"
               title="Hapus Meja"
             >
               <Trash2 className="w-3.5 h-3.5" />

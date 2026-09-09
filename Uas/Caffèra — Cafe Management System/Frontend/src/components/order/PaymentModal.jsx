@@ -154,31 +154,6 @@ export const PaymentModal = ({
                 </button>
               )}
             </form>
-
-            {/* Quick voucher chips */}
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-[10px] text-stone-400 font-bold">Voucher:</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setVoucherInput('CAFF10');
-                  onApplyVoucher('CAFF10');
-                }}
-                className="text-[10px] font-black px-2 py-0.5 bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition"
-              >
-                CAFF10 (10% OFF)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setVoucherInput('HEMAT20');
-                  onApplyVoucher('HEMAT20');
-                }}
-                className="text-[10px] font-black px-2 py-0.5 bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition"
-              >
-                HEMAT20 (-20rb)
-              </button>
-            </div>
           </div>
 
           {/* Payment Method Selector */}

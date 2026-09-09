@@ -195,7 +195,7 @@ export const MenuListPage = () => {
             icon={<Plus className="w-4 h-4" />}
             className="uppercase tracking-wider font-extrabold text-xs"
           >
-            + Tambah Menu Baru
+            Tambah Menu Baru
           </Button>
         )}
       </div>

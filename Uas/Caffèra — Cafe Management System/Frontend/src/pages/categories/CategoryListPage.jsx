@@ -112,7 +112,7 @@ export const CategoryListPage = () => {
             icon={<Plus className="w-4 h-4" />}
             className="uppercase tracking-wider font-extrabold text-xs"
           >
-            + Tambah Kategori Baru
+            Tambah Kategori Baru
           </Button>
         )}
       </div>

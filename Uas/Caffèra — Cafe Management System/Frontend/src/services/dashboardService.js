@@ -51,8 +51,8 @@ export const dashboardService = {
       salesLast7Days.push({
         date: dateStr,
         label,
-        totalRevenue: dayRev > 0 ? dayRev : (7 - i) * 65000 + 40000, // realistic aesthetic trend
-        totalOrders: dayOrders.length > 0 ? dayOrders.length : Math.max(1, 4 - i % 3),
+        totalRevenue: dayRev,
+        totalOrders: dayOrders.length,
       });
     }
 
@@ -70,30 +70,20 @@ export const dashboardService = {
             };
           }
           menuSalesMap[item.menuId].totalQuantitySold += item.quantity || 1;
-          menuSalesMap[item.menuId].totalRevenue += item.subtotal || item.price * item.quantity;
+          menuSalesMap[item.menuId].totalRevenue += item.subtotal || (item.price || 0) * (item.quantity || 1);
         });
       }
     });
 
-    let topSellingMenus = Object.values(menuSalesMap).sort(
+    const topSellingMenus = Object.values(menuSalesMap).sort(
       (a, b) => b.totalQuantitySold - a.totalQuantitySold
     );
-
-    // Fallback if not enough sales yet
-    if (topSellingMenus.length < 3) {
-      topSellingMenus = [
-        { menuId: 1, menuName: 'Caffè Latte Signature', totalQuantitySold: 42, totalRevenue: 1176000 },
-        { menuId: 12, menuName: 'Caffèra Wagyu Smash Burger', totalQuantitySold: 28, totalRevenue: 1624000 },
-        { menuId: 7, menuName: 'Kyoto Uji Matcha Latte', totalQuantitySold: 25, totalRevenue: 800000 },
-        { menuId: 22, menuName: 'Butter Croissant French Almond', totalQuantitySold: 21, totalRevenue: 588000 },
-      ];
-    }
 
     return {
       success: true,
       data: {
-        todayRevenue: todayRevenue > 0 ? todayRevenue : 374000,
-        todayOrdersCount: todayOrders.length > 0 ? todayOrders.length : 8,
+        todayRevenue,
+        todayOrdersCount: todayOrders.length,
         totalMenuItems: menus.length,
         availableTablesCount,
         occupiedTablesCount,

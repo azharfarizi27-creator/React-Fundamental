@@ -15,6 +15,7 @@ import {
   ShoppingBag,
   Shield,
   UserCheck,
+  ChefHat,
   ChevronDown,
   Sparkles,
   Percent,
@@ -23,15 +24,17 @@ import { useAuth } from '../context/AuthContext';
 import { useOrder } from '../context/OrderContext';
 import { formatRupiah } from '../utils/formatters';
 import Badge from '../components/common/Badge';
+import Modal from '../components/common/Modal';
+import Button from '../components/common/Button';
 
 export const MainLayout = () => {
-  const { user, isAdmin, isCashier, isKitchen, logout, switchRole } = useAuth();
+  const { user, isAdmin, isCashier, isKitchen, logout } = useAuth();
   const { totalItemCount, totalAmount } = useOrder();
   const location = useLocation();
   const navigate = useNavigate();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   // Define allowed roles for each menu item
   const navigationItems = [
@@ -209,7 +212,7 @@ export const MainLayout = () => {
               </div>
 
               <button
-                onClick={logout}
+                onClick={() => setIsLogoutModalOpen(true)}
                 className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-white rounded-lg transition-colors cursor-pointer"
                 title="Logout"
               >
@@ -270,92 +273,47 @@ export const MainLayout = () => {
               </button>
             )}
 
-            {/* Quick Role Switcher for Grading / Demo */}
-            <div className="relative">
-              <button
-                onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-800 text-xs font-bold shadow-xs transition-colors cursor-pointer"
-              >
-                {isAdmin ? (
-                  <Shield className="w-3.5 h-3.5 text-[#fbb710]" />
-                ) : isKitchen ? (
-                  <span className="text-xs">👨‍🍳</span>
-                ) : (
-                  <UserCheck className="w-3.5 h-3.5 text-blue-600" />
-                )}
-                <span>Role: {user?.role || 'Admin'}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-stone-400" />
-              </button>
-
-              {isRoleDropdownOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-52 bg-white border border-stone-200 rounded-xl shadow-xl z-50 p-1.5 animate-in fade-in duration-150"
-                  onClick={() => setIsRoleDropdownOpen(false)}
-                >
-                  <p className="px-3 py-1.5 text-[10px] font-bold text-stone-400 uppercase">
-                    Demo Role Switch
-                  </p>
-                  <button
-                    onClick={() => {
-                      switchRole('Admin');
-                      navigate('/dashboard');
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors ${
-                      isAdmin ? 'bg-amber-50 text-amber-900 font-bold' : 'text-stone-600 hover:bg-stone-100'
-                    }`}
-                  >
-                    <span>Admin (Full Access)</span>
-                    {isAdmin && <span className="w-1.5 h-1.5 rounded-full bg-[#fbb710]" />}
-                  </button>
-                  <button
-                    onClick={() => {
-                      switchRole('Cashier');
-                      navigate('/dashboard');
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors ${
-                      isCashier ? 'bg-blue-50 text-blue-900 font-bold' : 'text-stone-600 hover:bg-stone-100'
-                    }`}
-                  >
-                    <span>Cashier (Kasir/Pelayan)</span>
-                    {isCashier && <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />}
-                  </button>
-                  <button
-                    onClick={() => {
-                      switchRole('Kitchen');
-                      navigate('/kitchen');
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors ${
-                      isKitchen ? 'bg-emerald-50 text-emerald-900 font-bold' : 'text-stone-600 hover:bg-stone-100'
-                    }`}
-                  >
-                    <span>Kitchen (Dapur KDS)</span>
-                    {isKitchen && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />}
-                  </button>
-                </div>
+            {/* Active User Profile Pill */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-800 text-xs font-bold shadow-xs">
+              {isAdmin ? (
+                <Shield className="w-3.5 h-3.5 text-[#e59e07]" />
+              ) : isKitchen ? (
+                <ChefHat className="w-3.5 h-3.5 text-amber-600" />
+              ) : (
+                <UserCheck className="w-3.5 h-3.5 text-blue-600" />
               )}
+              <span className="hidden sm:inline font-bold text-stone-900">{user?.name || 'Staff'}</span>
+              <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-stone-100 text-stone-700">
+                {user?.role || 'Staff'}
+              </span>
             </div>
 
             {/* Logout Button */}
             <button
-              onClick={logout}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-200 bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-stone-600 text-xs font-semibold transition-colors cursor-pointer"
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-200 bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-stone-600 text-xs font-semibold transition-colors cursor-pointer"
+              title="Logout dari akun"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Keluar</span>
+              <span className="hidden sm:inline">Keluar</span>
             </button>
           </div>
         </header>
 
         {/* Mobile Navigation Drawer */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-40 flex">
+          <div className="lg:hidden fixed inset-0 z-50 flex">
+            {/* Backdrop */}
             <div
-              className="fixed inset-0 bg-stone-950/60 backdrop-blur-sm"
+              className="fixed inset-0 bg-stone-950/60 backdrop-blur-xs transition-opacity"
               onClick={() => setIsMobileMenuOpen(false)}
             />
-            <div className="relative w-64 bg-white text-stone-900 p-6 flex flex-col justify-between z-50">
+
+            {/* Drawer Content */}
+            <div className="relative w-72 max-w-[85vw] bg-white text-stone-900 p-6 flex flex-col justify-between z-50 shadow-2xl h-full overflow-y-auto">
               <div>
-                <div className="flex items-center justify-between pb-6 border-b border-stone-200 mb-6">
+                {/* Header in Drawer */}
+                <div className="flex items-center justify-between pb-4 border-b border-stone-200 mb-4">
                   <div className="flex items-center gap-1">
                     <span className="font-extrabold text-xl text-stone-950">Caffè</span>
                     <span className="w-2.5 h-2.5 rounded-full bg-[#fbb710]" />
@@ -363,49 +321,71 @@ export const MainLayout = () => {
                   </div>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-1 text-stone-500 hover:text-stone-900"
+                    className="p-1.5 rounded-md hover:bg-stone-100 text-stone-500 hover:text-stone-900 transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <nav className="space-y-4">
+                {/* User Info in Mobile Drawer */}
+                <div className="p-3 bg-stone-50 rounded-lg border border-stone-200/80 mb-5 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[#fbb710] text-stone-950 font-black text-sm flex items-center justify-center shrink-0">
+                    {user?.name ? user.name.charAt(0).toUpperCase() : 'S'}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-stone-950 truncate">{user?.name || 'Staff User'}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-amber-100 text-amber-900">
+                        {user?.role || 'Staff'}
+                      </span>
+                      <span className="text-[10px] text-stone-400 truncate">{user?.email}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Navigation Links */}
+                <nav className="space-y-1.5">
                   {visibleNavItems.map((item) => (
                     <NavLink
                       key={item.path}
                       to={item.path}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center gap-2.5 py-1 text-sm font-extrabold uppercase tracking-wider transition-colors ${
+                        `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-colors ${
                           isActive
-                            ? 'text-[#fbb710]'
-                            : 'text-stone-800 hover:text-[#fbb710]'
+                            ? 'bg-[#fbb710] text-stone-950 shadow-xs'
+                            : 'text-stone-700 hover:bg-stone-100 hover:text-stone-950'
                         }`
                       }
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#fbb710]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-stone-950" />
                       <span>{item.name}</span>
                     </NavLink>
                   ))}
                 </nav>
               </div>
 
-              <div className="pt-6 border-t border-stone-200 space-y-3">
+              {/* Bottom Drawer Actions */}
+              <div className="pt-6 border-t border-stone-200 space-y-2.5 mt-6">
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     navigate('/orders/create');
                   }}
-                  className="w-full py-2.5 bg-[#fbb710] text-stone-950 font-bold text-xs uppercase"
+                  className="w-full py-2.5 px-4 bg-[#fbb710] hover:bg-[#e59e07] text-stone-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-colors"
                 >
-                  + Buat Order POS
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>+ Buat Order POS</span>
                 </button>
                 <button
-                  onClick={logout}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-stone-100 text-rose-600 text-xs font-bold"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsLogoutModalOpen(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
+                  <span>Logout Keluar</span>
                 </button>
               </div>
             </div>
@@ -413,10 +393,56 @@ export const MainLayout = () => {
         )}
 
         {/* Page Content Outlet */}
-        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           <Outlet />
         </main>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        title="Konfirmasi Keluar (Logout)"
+        subtitle="Sistem Keamanan Akun Caffèra"
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <div className="p-4 bg-amber-50/50 border border-amber-200/80 rounded-xl flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-amber-100 text-amber-800 shrink-0">
+              <LogOut className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-stone-900">
+                Apakah Anda yakin ingin keluar dari sistem?
+              </p>
+              <p className="text-[11px] text-stone-600 mt-0.5 leading-relaxed">
+                Sesi akun <span className="font-bold">{user?.name || 'Staff'}</span> ({user?.role}) akan diakhiri. Anda perlu memasukkan email & password kembali untuk mengakses dashboard.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-stone-100">
+            <Button
+              variant="outline"
+              size="md"
+              onClick={() => setIsLogoutModalOpen(false)}
+            >
+              Batal
+            </Button>
+            <Button
+              variant="danger"
+              size="md"
+              onClick={() => {
+                setIsLogoutModalOpen(false);
+                logout();
+              }}
+              icon={<LogOut className="w-4 h-4" />}
+            >
+              Ya, Keluar Akun
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
