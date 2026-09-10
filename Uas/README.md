@@ -9,7 +9,8 @@
 - 🚀 **Live Demo Web App:** [https://mycaffera.vercel.app/login](https://mycaffera.vercel.app/login)
 - 📦 **GitHub Repository:** [https://github.com/azharfarizi27-creator/React-Fundamental](https://github.com/azharfarizi27-creator/React-Fundamental)
 - 📂 **Subfolder Projek UAS:** [UAS Caffèra](https://github.com/azharfarizi27-creator/React-Fundamental/tree/main/Uas)
-- 🎥 **Video Demo Pesan QR:** [Record-Menu-Lewat-QR.mp4](file:///c:/React-Fundamental/Uas/Record-Menu-Lewat-QR.mp4)
+- 🎥 **Video Demo Pesan QR (Lokal):** [Record-Menu-Lewat-QR.mp4](file:///c:/React-Fundamental/Uas/Record-Menu-Lewat-QR.mp4)
+- 🎬 **Video Presentasi Lengkap (Google Drive):** [Tonton / Download Video Presentasi](https://drive.google.com/file/d/11IrLsYgZsLkNkGJQKPLAvMzP2r707SsV/view?usp=sharing)
 
 ---
 
