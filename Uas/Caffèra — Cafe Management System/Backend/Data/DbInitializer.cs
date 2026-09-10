@@ -44,6 +44,13 @@ public static class DbInitializer
                     await context.Database.EnsureCreatedAsync();
                 }
 
+                // Sinkronisasi kolom opsional CustomerName di PostgreSQL
+                try
+                {
+                    await context.Database.ExecuteSqlRawAsync("ALTER TABLE \"Orders\" ADD COLUMN IF NOT EXISTS \"CustomerName\" VARCHAR(100);");
+                }
+                catch { }
+
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("[DATABASE] ✅ Database PostgreSQL terhubung & skema tabel siap.");
                 Console.ResetColor();
@@ -59,10 +66,19 @@ public static class DbInitializer
                 {
                     await context.Database.EnsureCreatedAsync();
                 }
+
+                // Sinkronisasi kolom opsional CustomerName di SQL Server
+                try
+                {
+                    await context.Database.ExecuteSqlRawAsync("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Orders') AND name = 'CustomerName') ALTER TABLE Orders ADD CustomerName NVARCHAR(100) NULL;");
+                }
+                catch { }
+
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("[DATABASE] ✅ Database SQL Server terhubung & migrasi siap.");
                 Console.ResetColor();
             }
+
 
             // Ensure Admin user has valid BCrypt hash
             var admin = await context.Users.FirstOrDefaultAsync(u => u.Email == "admin@caffera.com");

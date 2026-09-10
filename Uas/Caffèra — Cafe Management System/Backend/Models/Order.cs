@@ -16,6 +16,9 @@ public class Order
     [Required]
     public int UserId { get; set; }
 
+    [MaxLength(100)]
+    public string? CustomerName { get; set; }
+
     public int? TableId { get; set; } // Nullable jika TakeAway
 
     [Required]

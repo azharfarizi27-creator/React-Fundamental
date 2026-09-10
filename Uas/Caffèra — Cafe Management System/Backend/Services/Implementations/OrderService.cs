@@ -38,7 +38,8 @@ public class OrderService : IOrderService
             .Include(o => o.User)
             .Include(o => o.Table)
             .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Menu)
+                .ThenInclude(oi => oi.Menu!)
+                    .ThenInclude(m => m.Category)
             .AsQueryable();
 
         // 1. Search filter (OrderNumber, Customer/User, Table)
@@ -46,17 +47,43 @@ public class OrderService : IOrderService
         {
             var search = filterParams.Search.Trim().ToLower();
             query = query.Where(o => o.OrderNumber.ToLower().Contains(search) || 
-                                     o.User!.Name.ToLower().Contains(search));
+                                     (o.User != null && o.User.Name.ToLower().Contains(search)) ||
+                                     (o.CustomerName != null && o.CustomerName.ToLower().Contains(search)));
         }
 
         // 2. Status filter
         if (!string.IsNullOrWhiteSpace(filterParams.Status))
         {
-            query = query.Where(o => o.Status.ToLower() == filterParams.Status.Trim().ToLower());
+            var rawStatus = filterParams.Status.Trim();
+            if (!rawStatus.Equals("all", StringComparison.OrdinalIgnoreCase))
+            {
+                if (rawStatus.Equals("active", StringComparison.OrdinalIgnoreCase) ||
+                    rawStatus.Equals("kitchen", StringComparison.OrdinalIgnoreCase) ||
+                    rawStatus.Equals("inprogress", StringComparison.OrdinalIgnoreCase) ||
+                    rawStatus.Equals("in_progress", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(o => o.Status == "Pending" || o.Status == "Preparing" || o.Status == "Ready");
+                }
+                else
+                {
+                    var statuses = rawStatus.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                                            .Select(s => s.ToLower())
+                                            .ToList();
+                    if (statuses.Count == 1)
+                    {
+                        var singleStatus = statuses[0];
+                        query = query.Where(o => o.Status.ToLower() == singleStatus);
+                    }
+                    else if (statuses.Count > 1)
+                    {
+                        query = query.Where(o => statuses.Contains(o.Status.ToLower()));
+                    }
+                }
+            }
         }
 
         // 3. OrderType filter
-        if (!string.IsNullOrWhiteSpace(filterParams.OrderType))
+        if (!string.IsNullOrWhiteSpace(filterParams.OrderType) && !filterParams.OrderType.Equals("all", StringComparison.OrdinalIgnoreCase))
         {
             query = query.Where(o => o.OrderType.ToLower() == filterParams.OrderType.Trim().ToLower());
         }
@@ -129,8 +156,14 @@ public class OrderService : IOrderService
 
     public async Task<ApiResponse<OrderDto>> CreateAsync(int userId, CreateOrderDto dto)
     {
+        var normalizedItems = dto.GetNormalizedItems();
         _logger.LogInformation("[ORDER] 🛒 Membuat pesanan baru oleh User ID: {UserId}, Tipe: {OrderType}, Jumlah Menu: {Count}", 
-            userId, dto.OrderType, dto.Items.Count);
+            userId, dto.OrderType, normalizedItems.Count);
+
+        if (normalizedItems.Count == 0)
+        {
+            return ApiResponse<OrderDto>.FailResult("Pesanan harus memiliki minimal 1 item menu yang valid");
+        }
 
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
@@ -142,35 +175,44 @@ public class OrderService : IOrderService
         Table? table = null;
         if (dto.OrderType.Equals("DineIn", StringComparison.OrdinalIgnoreCase))
         {
-            if (!dto.TableId.HasValue)
+            if (dto.TableId.HasValue && dto.TableId.Value > 0)
             {
-                _logger.LogWarning("[ORDER] ⚠️ Gagal membuat pesanan Dine In: TableId tidak disertakan");
-                return ApiResponse<OrderDto>.FailResult("Meja wajib dipilih untuk pesanan Dine In");
+                table = await _tableRepository.GetByIdAsync(dto.TableId.Value);
+            }
+            if (table == null && dto.TableNumber.HasValue && dto.TableNumber.Value > 0)
+            {
+                var tables = await _tableRepository.FindAsync(t => t.Number == dto.TableNumber.Value);
+                table = tables.FirstOrDefault();
+            }
+            if (table == null && dto.TableId.HasValue && dto.TableId.Value > 0)
+            {
+                var tables = await _tableRepository.FindAsync(t => t.Number == dto.TableId.Value);
+                table = tables.FirstOrDefault();
+            }
+            if (table == null && dto.TableNumber.HasValue && dto.TableNumber.Value > 0)
+            {
+                table = await _tableRepository.GetByIdAsync(dto.TableNumber.Value);
             }
 
-            table = await _tableRepository.GetByIdAsync(dto.TableId.Value);
-            if (table == null)
+            if (table != null)
             {
-                _logger.LogWarning("[ORDER] ⚠️ Gagal membuat pesanan: Meja ID {TableId} tidak ditemukan", dto.TableId.Value);
-                return ApiResponse<OrderDto>.FailResult("Meja yang dipilih tidak ditemukan");
+                dto.TableId = table.Id;
+                table.Status = "Occupied";
+                table.UpdatedAt = DateTime.UtcNow;
+                await _tableRepository.UpdateAsync(table);
+                _logger.LogInformation("[ORDER] 🪑 Status Meja #{TableNumber} diubah menjadi Occupied", table.Number);
             }
-
-            // Update table status to Occupied
-            table.Status = "Occupied";
-            table.UpdatedAt = DateTime.UtcNow;
-            await _tableRepository.UpdateAsync(table);
-            _logger.LogInformation("[ORDER] 🪑 Status Meja #{TableNumber} (ID: {TableId}) diubah menjadi Occupied", table.Number, table.Id);
         }
 
-        var menuIds = dto.Items.Select(i => i.MenuId).Distinct().ToList();
+        var menuIds = normalizedItems.Select(i => i.EffectiveMenuId).Distinct().ToList();
         var menus = (await _menuRepository.FindAsync(m => menuIds.Contains(m.Id))).ToDictionary(m => m.Id);
 
-        foreach (var item in dto.Items)
+        foreach (var item in normalizedItems)
         {
-            if (!menus.TryGetValue(item.MenuId, out var menu))
+            if (!menus.TryGetValue(item.EffectiveMenuId, out var menu))
             {
-                _logger.LogWarning("[ORDER] ⚠️ Gagal membuat pesanan: Menu ID {MenuId} tidak ditemukan", item.MenuId);
-                return ApiResponse<OrderDto>.FailResult($"Menu dengan ID {item.MenuId} tidak ditemukan");
+                _logger.LogWarning("[ORDER] ⚠️ Gagal membuat pesanan: Menu ID {MenuId} tidak ditemukan", item.EffectiveMenuId);
+                return ApiResponse<OrderDto>.FailResult($"Menu dengan ID {item.EffectiveMenuId} tidak ditemukan");
             }
 
             if (!menu.IsAvailable)
@@ -181,11 +223,16 @@ public class OrderService : IOrderService
         }
 
         var orderNumber = await _orderRepository.GenerateOrderNumberAsync();
+        var customerName = !string.IsNullOrWhiteSpace(dto.CustomerName)
+            ? dto.CustomerName.Trim()
+            : (table != null ? $"Tamu Meja #{table.Number}" : user.Name);
+
         var order = new Order
         {
             OrderNumber = orderNumber,
             UserId = userId,
-            TableId = dto.OrderType.Equals("DineIn", StringComparison.OrdinalIgnoreCase) ? dto.TableId : null,
+            CustomerName = customerName,
+            TableId = dto.OrderType.Equals("DineIn", StringComparison.OrdinalIgnoreCase) ? (table?.Id ?? dto.TableId) : null,
             OrderType = dto.OrderType.Equals("TakeAway", StringComparison.OrdinalIgnoreCase) ? "TakeAway" : "DineIn",
             Status = "Pending",
             CreatedAt = DateTime.UtcNow,
@@ -193,16 +240,17 @@ public class OrderService : IOrderService
         };
 
         decimal totalAmount = 0;
-        foreach (var item in dto.Items)
+        foreach (var item in normalizedItems)
         {
-            var menu = menus[item.MenuId];
-            var subtotal = menu.Price * item.Quantity;
+            var menu = menus[item.EffectiveMenuId];
+            var qty = item.EffectiveQuantity;
+            var subtotal = menu.Price * qty;
             totalAmount += subtotal;
 
             order.OrderItems.Add(new OrderItem
             {
                 MenuId = menu.Id,
-                Quantity = item.Quantity,
+                Quantity = qty,
                 Price = menu.Price, // Snapshot price!
                 Subtotal = subtotal
             });
@@ -216,7 +264,130 @@ public class OrderService : IOrderService
         _logger.LogInformation("[ORDER] ✅ Pesanan berhasil dibuat! No: {OrderNumber} (ID: {OrderId}), Total: Rp {Total:N0}, Kasir: {Cashier}",
             order.OrderNumber, createdOrder.Id, order.TotalAmount, user.Name);
 
-        return ApiResponse<OrderDto>.SuccessResult(MapToOrderDto(fullOrder!), "Pesanan berhasil dibuat");
+        var orderDto = MapToOrderDto(fullOrder!);
+        return ApiResponse<OrderDto>.SuccessResult(orderDto, "Pesanan berhasil dibuat");
+    }
+
+    public async Task<ApiResponse<OrderDto>> CreateGuestOrderAsync(CreateOrderDto dto)
+    {
+        var normalizedItems = dto.GetNormalizedItems();
+        _logger.LogInformation("[ORDER] 📱 Tamu membuat pesanan Self-Order via QR Meja #{TableNumber} / TableId {TableId}. Customer: '{Customer}', Items Count: {Count}", 
+            dto.TableNumber, dto.TableId, dto.CustomerName ?? "Tamu", normalizedItems.Count);
+
+        if (normalizedItems.Count == 0)
+        {
+            return ApiResponse<OrderDto>.FailResult("Pesanan harus memiliki minimal 1 item menu yang valid");
+        }
+
+        // Cari akun sistem / admin default sebagai penanggung jawab order
+        var users = await _userRepository.GetAllAsync();
+        var defaultUser = users.FirstOrDefault(u => u.Role == "Admin") ?? users.FirstOrDefault();
+
+        if (defaultUser == null)
+        {
+            _logger.LogWarning("[ORDER] ⚠️ Gagal membuat pesanan guest: Tidak ada user default di database");
+            return ApiResponse<OrderDto>.FailResult("Sistem kasir sedang tidak siap menerima pesanan");
+        }
+
+        Table? table = null;
+        if (dto.OrderType.Equals("DineIn", StringComparison.OrdinalIgnoreCase))
+        {
+            if (dto.TableId.HasValue && dto.TableId.Value > 0)
+            {
+                table = await _tableRepository.GetByIdAsync(dto.TableId.Value);
+            }
+            if (table == null && dto.TableNumber.HasValue && dto.TableNumber.Value > 0)
+            {
+                var tables = await _tableRepository.FindAsync(t => t.Number == dto.TableNumber.Value);
+                table = tables.FirstOrDefault();
+            }
+            if (table == null && dto.TableId.HasValue && dto.TableId.Value > 0)
+            {
+                var tables = await _tableRepository.FindAsync(t => t.Number == dto.TableId.Value);
+                table = tables.FirstOrDefault();
+            }
+            if (table == null && dto.TableNumber.HasValue && dto.TableNumber.Value > 0)
+            {
+                table = await _tableRepository.GetByIdAsync(dto.TableNumber.Value);
+            }
+
+            if (table == null)
+            {
+                // Ambil meja pertama jika tidak ditemukan nomor meja spesifik
+                var allTables = await _tableRepository.GetAllAsync();
+                table = allTables.FirstOrDefault();
+            }
+
+            if (table != null)
+            {
+                dto.TableId = table.Id;
+                table.Status = "Occupied";
+                table.UpdatedAt = DateTime.UtcNow;
+                await _tableRepository.UpdateAsync(table);
+                _logger.LogInformation("[ORDER] 🪑 Status Meja #{TableNumber} diubah menjadi Occupied oleh Guest Self-Order", table.Number);
+            }
+        }
+
+        var menuIds = normalizedItems.Select(i => i.EffectiveMenuId).Distinct().ToList();
+        var menus = (await _menuRepository.FindAsync(m => menuIds.Contains(m.Id))).ToDictionary(m => m.Id);
+
+        foreach (var item in normalizedItems)
+        {
+            if (!menus.TryGetValue(item.EffectiveMenuId, out var menu))
+            {
+                return ApiResponse<OrderDto>.FailResult($"Menu dengan ID {item.EffectiveMenuId} tidak ditemukan");
+            }
+
+            if (!menu.IsAvailable)
+            {
+                return ApiResponse<OrderDto>.FailResult($"Menu '{menu.Name}' saat ini sedang tidak tersedia");
+            }
+        }
+
+        var orderNumber = await _orderRepository.GenerateOrderNumberAsync();
+        var customerName = !string.IsNullOrWhiteSpace(dto.CustomerName)
+            ? dto.CustomerName.Trim()
+            : (table != null ? $"Tamu Meja #{table.Number}" : "Tamu");
+
+        var order = new Order
+        {
+            OrderNumber = orderNumber,
+            UserId = defaultUser.Id,
+            CustomerName = customerName,
+            TableId = dto.OrderType.Equals("DineIn", StringComparison.OrdinalIgnoreCase) ? (table?.Id ?? dto.TableId) : null,
+            OrderType = dto.OrderType.Equals("TakeAway", StringComparison.OrdinalIgnoreCase) ? "TakeAway" : "DineIn",
+            Status = "Pending",
+            CreatedAt = DateTime.UtcNow,
+            OrderItems = new List<OrderItem>()
+        };
+
+        decimal totalAmount = 0;
+        foreach (var item in normalizedItems)
+        {
+            var menu = menus[item.EffectiveMenuId];
+            var qty = item.EffectiveQuantity;
+            var subtotal = menu.Price * qty;
+            totalAmount += subtotal;
+
+            order.OrderItems.Add(new OrderItem
+            {
+                MenuId = menu.Id,
+                Quantity = qty,
+                Price = menu.Price,
+                Subtotal = subtotal
+            });
+        }
+
+        order.TotalAmount = totalAmount;
+
+        var createdOrder = await _orderRepository.AddAsync(order);
+        var fullOrder = await _orderRepository.GetOrderWithDetailsAsync(createdOrder.Id);
+
+        _logger.LogInformation("[ORDER] ✅ Pesanan Self-Order berhasil dibuat! No: {OrderNumber}, Meja: #{Table}, Total: Rp {Total:N0}, Tamu: '{Customer}'",
+            order.OrderNumber, table?.Number, order.TotalAmount, customerName);
+
+        var orderDto = MapToOrderDto(fullOrder!);
+        return ApiResponse<OrderDto>.SuccessResult(orderDto, "Pesanan berhasil dikirim ke Barista & Dapur");
     }
 
     public async Task<ApiResponse<OrderDto>> UpdateStatusAsync(int id, UpdateOrderStatusDto dto)
@@ -317,18 +488,24 @@ public class OrderService : IOrderService
 
     private static OrderDto MapToOrderDto(Order order)
     {
+        var customer = !string.IsNullOrWhiteSpace(order.CustomerName)
+            ? order.CustomerName
+            : (order.Table != null ? $"Tamu Meja #{order.Table.Number}" : (order.User?.Name ?? "Tamu"));
+
         return new OrderDto
         {
             Id = order.Id,
             OrderNumber = order.OrderNumber,
             UserId = order.UserId,
             UserName = order.User?.Name ?? string.Empty,
+            CustomerName = customer,
             TableId = order.TableId,
             TableNumber = order.Table?.Number,
             OrderType = order.OrderType,
             Status = order.Status,
             TotalAmount = order.TotalAmount,
             CreatedAt = order.CreatedAt,
+            UpdatedAt = order.UpdatedAt,
             Items = order.OrderItems.Select(oi => new OrderItemDto
             {
                 Id = oi.Id,
@@ -337,8 +514,22 @@ public class OrderService : IOrderService
                 ImageUrl = oi.Menu?.ImageUrl,
                 Quantity = oi.Quantity,
                 Price = oi.Price,
-                Subtotal = oi.Subtotal
+                Subtotal = oi.Subtotal,
+                Menu = oi.Menu != null ? new DTOs.Menu.MenuDto
+                {
+                    Id = oi.Menu.Id,
+                    CategoryId = oi.Menu.CategoryId,
+                    CategoryName = oi.Menu.Category?.Name ?? string.Empty,
+                    Name = oi.Menu.Name,
+                    Description = oi.Menu.Description,
+                    Price = oi.Menu.Price,
+                    ImageUrl = oi.Menu.ImageUrl,
+                    IsAvailable = oi.Menu.IsAvailable,
+                    CreatedAt = oi.Menu.CreatedAt,
+                    UpdatedAt = oi.Menu.UpdatedAt
+                } : null
             }).ToList()
         };
     }
 }
+

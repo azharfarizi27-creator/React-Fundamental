@@ -66,22 +66,40 @@ public class DashboardService : IDashboardService
             OrderNumber = o.OrderNumber,
             UserId = o.UserId,
             UserName = o.User?.Name ?? string.Empty,
+            CustomerName = !string.IsNullOrWhiteSpace(o.CustomerName) 
+                ? o.CustomerName 
+                : (o.Table != null ? $"Tamu Meja #{o.Table.Number}" : (o.User?.Name ?? "Tamu")),
             TableId = o.TableId,
             TableNumber = o.Table?.Number,
             OrderType = o.OrderType,
             Status = o.Status,
             TotalAmount = o.TotalAmount,
             CreatedAt = o.CreatedAt,
+            UpdatedAt = o.UpdatedAt,
             Items = o.OrderItems.Select(oi => new OrderItemDto
             {
                 Id = oi.Id,
                 MenuId = oi.MenuId,
                 MenuName = oi.Menu?.Name ?? string.Empty,
+                ImageUrl = oi.Menu?.ImageUrl,
                 Quantity = oi.Quantity,
                 Price = oi.Price,
-                Subtotal = oi.Subtotal
+                Subtotal = oi.Subtotal,
+                Menu = oi.Menu != null ? new DTOs.Menu.MenuDto
+                {
+                    Id = oi.Menu.Id,
+                    CategoryId = oi.Menu.CategoryId,
+                    Name = oi.Menu.Name,
+                    Description = oi.Menu.Description,
+                    Price = oi.Menu.Price,
+                    ImageUrl = oi.Menu.ImageUrl,
+                    IsAvailable = oi.Menu.IsAvailable,
+                    CreatedAt = oi.Menu.CreatedAt,
+                    UpdatedAt = oi.Menu.UpdatedAt
+                } : null
             }).ToList()
         }).ToList();
+
 
         // 5. Sales last 7 days
         var sevenDaysAgo = today.AddDays(-6);
