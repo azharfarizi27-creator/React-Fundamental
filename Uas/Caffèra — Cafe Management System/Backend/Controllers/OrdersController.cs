@@ -80,7 +80,6 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost("guest")]
-    [HttpPost("/api/orders/guest")]
     [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<OrderDto>>> CreateGuestOrder([FromBody] CreateOrderDto dto)
     {

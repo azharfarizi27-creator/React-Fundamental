@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Shield, UserCheck, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Shield, UserCheck, ArrowRight, Github, ExternalLink } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import Button from '../../components/common/Button';
@@ -154,6 +154,21 @@ export const LoginPage = () => {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* GitHub Repository Link */}
+      <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
+        <span className="text-[11px] text-stone-400">Source Code:</span>
+        <a
+          href="https://github.com/azharfarizi27-creator/React-Fundamental"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 font-bold text-stone-700 hover:text-[#fbb710] transition-colors"
+        >
+          <Github className="w-3.5 h-3.5" />
+          <span>GitHub Repo</span>
+          <ExternalLink className="w-3 h-3 opacity-60" />
+        </a>
       </div>
     </div>
   );
