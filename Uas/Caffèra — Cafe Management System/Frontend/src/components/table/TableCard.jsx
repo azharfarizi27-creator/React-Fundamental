@@ -4,20 +4,27 @@ import { TABLE_STATUS_CONFIG } from '../../utils/constants';
 
 export const TableCard = ({
   table,
+  activeOrder,
   onSelectStatus,
   onCreateOrder,
+  onViewOrder,
+  onQuickAccept,
   onViewQr,
   onEdit,
   onDelete,
   isAdmin = false,
 }) => {
   return (
-    <div className="bg-white border border-stone-200/90 p-5 flex flex-col justify-between transition-all hover:shadow-md">
+    <div className={`bg-white border p-5 flex flex-col justify-between transition-all hover:shadow-md ${
+      activeOrder ? 'border-amber-400 ring-2 ring-[#fbb710]/30 shadow-xs' : 'border-stone-200/90'
+    }`}>
       {/* Top Accent Line */}
       <div>
         <div
           className={`w-8 h-1 mb-3 ${
-            table.status === 'Available'
+            activeOrder
+              ? 'bg-[#fbb710]'
+              : table.status === 'Available'
               ? 'bg-emerald-500'
               : table.status === 'Occupied'
               ? 'bg-[#fbb710]'
@@ -53,8 +60,26 @@ export const TableCard = ({
         </div>
       </div>
 
+      {/* Active QR Order Notification Box */}
+      {activeOrder && (
+        <div className="mt-3 p-2.5 bg-amber-50 border border-amber-200 text-xs">
+          <div className="flex items-center justify-between font-black text-amber-950">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+              <span>Pesanan Masuk</span>
+            </span>
+            <span className="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 font-mono font-bold">
+              {activeOrder.status}
+            </span>
+          </div>
+          <p className="text-[11px] text-stone-700 font-bold mt-1 truncate">
+            {activeOrder.customerName || 'Tamu'} • {activeOrder.items?.length || 0} item
+          </p>
+        </div>
+      )}
+
       {/* Center Table Visualization Graphic */}
-      <div className="my-4 py-2.5 flex items-center justify-between px-3 bg-stone-50 border border-stone-100 min-h-[44px]">
+      <div className="my-3 py-2.5 flex items-center justify-between px-3 bg-stone-50 border border-stone-100 min-h-[44px]">
         <div className="flex items-center gap-1.5 flex-wrap max-w-[120px]">
           {Array.from({ length: Math.min(table.capacity, 8) }).map((_, idx) => (
             <div
@@ -96,17 +121,29 @@ export const TableCard = ({
         </button>
 
         <div className="flex items-center gap-1 shrink-0">
-          {/* Create / Add Order Button for this table */}
-          {onCreateOrder && (
+          {/* If there's an active order, show View/Accept button */}
+          {activeOrder && onViewOrder ? (
             <button
               type="button"
-              onClick={() => onCreateOrder(table)}
-              className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider px-2.5 py-1.5 bg-[#fbb710] hover:bg-[#e5a607] text-stone-950 transition-colors shadow-xs cursor-pointer shrink-0"
-              title="Buka Kasir POS untuk Meja Ini"
+              onClick={() => onViewOrder(activeOrder)}
+              className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-stone-950 transition-colors shadow-xs cursor-pointer shrink-0"
+              title="Lihat & Proses Pesanan Ini"
             >
               <Coffee className="w-3 h-3" />
-              <span>Order</span>
+              <span>Detail Order</span>
             </button>
+          ) : (
+            onCreateOrder && (
+              <button
+                type="button"
+                onClick={() => onCreateOrder(table)}
+                className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider px-2.5 py-1.5 bg-[#fbb710] hover:bg-[#e5a607] text-stone-950 transition-colors shadow-xs cursor-pointer shrink-0"
+                title="Buka Kasir POS untuk Meja Ini"
+              >
+                <Coffee className="w-3 h-3" />
+                <span>Order</span>
+              </button>
+            )
           )}
 
           {isAdmin && onEdit && (

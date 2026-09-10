@@ -115,7 +115,8 @@ export const TableSelfOrderPage = () => {
     setIsSubmitting(true);
     try {
       const dto = {
-        tableId: Number(tableNumber), // mapped by table number
+        tableId: Number(tableNumber),
+        tableNumber: Number(tableNumber),
         orderType: 'DineIn',
         customerName: customerName || `Tamu Meja #${tableNumber}`,
         items: cart.map((item) => ({
@@ -126,9 +127,9 @@ export const TableSelfOrderPage = () => {
         })),
       };
 
-      const res = await orderService.create(dto);
+      const res = await (orderService.createGuestOrder ? orderService.createGuestOrder(dto) : orderService.create(dto));
       if (res.success && res.data) {
-        setSubmittedOrder(res.data);
+        setSubmittedOrder({ ...res.data, customerName: res.data.customerName || customerName || `Tamu Meja #${tableNumber}` });
         setCart([]);
       }
     } catch (err) {
@@ -153,7 +154,7 @@ export const TableSelfOrderPage = () => {
               PESANAN DITERIMA DAPUR
             </span>
             <h1 className="text-2xl font-black text-stone-950 mt-1">
-              Terima Kasih, {submittedOrder.userName || 'Tamu'}!
+              Terima Kasih, {submittedOrder.customerName || customerName || 'Tamu'}!
             </h1>
             <p className="text-xs text-stone-500 mt-1">
               Pesanan untuk <span className="font-bold text-stone-900">Meja #{tableNumber}</span> sedang diteruskan ke Barista & Dapur.

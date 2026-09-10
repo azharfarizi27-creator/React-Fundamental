@@ -110,14 +110,20 @@ export const orderService = {
   /**
    * Create New Order (POS checkout)
    */
+  createGuestOrder: async (dto) => {
+    return orderService.create(dto);
+  },
+
   create: async (dto) => {
     try {
-      const response = await api.post('/orders', dto);
+      const token = localStorage.getItem('caffera_token');
+      const endpoint = token ? '/orders' : '/orders/guest';
+      const response = await api.post(endpoint, dto);
       if (response.data && response.data.success) {
         return response.data;
       }
     } catch (err) {
-      console.warn('API POST /orders unavailable, using Mock Engine:', err.message);
+      console.warn('API POST order unavailable, using Mock Engine:', err.message);
     }
 
     const orders = getStorageData(STORAGE_KEYS.ORDERS);
@@ -126,7 +132,9 @@ export const orderService = {
     const users = getStorageData(STORAGE_KEYS.USERS);
 
     const currentUser = JSON.parse(localStorage.getItem('caffera_user') || 'null') || users[0];
-    const table = dto.tableId ? tables.find((t) => t.id === Number(dto.tableId)) : null;
+    const table = dto.tableId
+      ? tables.find((t) => t.id === Number(dto.tableId) || t.number === Number(dto.tableId))
+      : (dto.tableNumber ? tables.find((t) => t.number === Number(dto.tableNumber)) : null);
 
     const newId = orders.length > 0 ? Math.max(...orders.map((o) => o.id)) + 1 : 1;
     const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -145,25 +153,27 @@ export const orderService = {
         id: idx + 1,
         orderId: newId,
         menuId: Number(item.menuId),
-        menuName: menu ? menu.name : 'Unknown Item',
+        menuName: menu ? menu.name : item.name || 'Unknown Item',
         quantity,
         price,
         subtotal,
+        note: item.note || '',
       };
     });
 
     const tax = dto.tax !== undefined ? Number(dto.tax) : Math.round(calculatedTotal * 0.1);
     const discountAmount = dto.discountAmount ? Number(dto.discountAmount) : 0;
     const finalTotal = dto.totalAmount !== undefined ? Number(dto.totalAmount) : Math.max(0, calculatedTotal + tax - discountAmount);
+    const targetTableNumber = table ? table.number : (dto.tableNumber ? Number(dto.tableNumber) : (dto.tableId ? Number(dto.tableId) : null));
 
     const newOrder = {
       id: newId,
       orderNumber,
-      userId: currentUser.id,
-      userName: currentUser.name,
-      customerName: dto.customerName || null,
-      tableId: dto.tableId ? Number(dto.tableId) : null,
-      tableNumber: table ? table.number : null,
+      userId: currentUser?.id || 1,
+      userName: currentUser?.name || 'Kasir Caffèra',
+      customerName: dto.customerName || (targetTableNumber ? `Tamu Meja #${targetTableNumber}` : 'Pelanggan'),
+      tableId: table ? table.id : (dto.tableId ? Number(dto.tableId) : null),
+      tableNumber: targetTableNumber,
       orderType: dto.orderType || 'DineIn',
       status: 'Pending',
       subtotal: calculatedTotal,

@@ -247,7 +247,7 @@ export const KitchenDisplayPage = () => {
                         #{order.orderNumber}
                       </span>
                       <div className="text-base font-black text-black">
-                        {order.tableNumber ? `MEJA ${order.tableNumber}` : 'TAKEAWAY'}
+                        {order.tableNumber ? `MEJA ${order.tableNumber}` : 'TAKEAWAY'}{order.customerName ? ` (${order.customerName})` : ''}
                       </div>
                     </div>
                     <div className="text-right">
@@ -260,13 +260,20 @@ export const KitchenDisplayPage = () => {
                   {/* Items list */}
                   <div className="border-t border-b border-neutral-100 py-2.5 my-2.5 space-y-1.5">
                     {order.items?.map((item, idx) => (
-                      <div key={idx} className="flex justify-between items-start text-xs">
-                        <span className="font-bold text-neutral-800">
-                          <span className="inline-block w-5 font-black text-black">
-                            {item.quantity}x
-                          </span>{' '}
-                          {item.menuName}
-                        </span>
+                      <div key={idx} className="space-y-0.5">
+                        <div className="flex justify-between items-start text-xs">
+                          <span className="font-bold text-neutral-800">
+                            <span className="inline-block w-5 font-black text-black">
+                              {item.quantity}x
+                            </span>{' '}
+                            {item.menuName}
+                          </span>
+                        </div>
+                        {item.note && (
+                          <p className="text-[10px] text-amber-800 font-semibold italic pl-5">
+                            * {item.note}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -316,7 +323,7 @@ export const KitchenDisplayPage = () => {
                         #{order.orderNumber}
                       </span>
                       <div className="text-base font-black text-black">
-                        {order.tableNumber ? `MEJA ${order.tableNumber}` : 'TAKEAWAY'}
+                        {order.tableNumber ? `MEJA ${order.tableNumber}` : 'TAKEAWAY'}{order.customerName ? ` (${order.customerName})` : ''}
                       </div>
                     </div>
                     <div className="text-right">
@@ -329,13 +336,20 @@ export const KitchenDisplayPage = () => {
                   {/* Items list */}
                   <div className="border-t border-b border-neutral-100 py-2.5 my-2.5 space-y-1.5">
                     {order.items?.map((item, idx) => (
-                      <div key={idx} className="flex justify-between items-start text-xs">
-                        <span className="font-bold text-neutral-800">
-                          <span className="inline-block w-5 font-black text-blue-600">
-                            {item.quantity}x
-                          </span>{' '}
-                          {item.menuName}
-                        </span>
+                      <div key={idx} className="space-y-0.5">
+                        <div className="flex justify-between items-start text-xs">
+                          <span className="font-bold text-neutral-800">
+                            <span className="inline-block w-5 font-black text-blue-600">
+                              {item.quantity}x
+                            </span>{' '}
+                            {item.menuName}
+                          </span>
+                        </div>
+                        {item.note && (
+                          <p className="text-[10px] text-blue-800 font-semibold italic pl-5">
+                            * {item.note}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -393,7 +407,7 @@ export const KitchenDisplayPage = () => {
                         #{order.orderNumber}
                       </span>
                       <div className="text-base font-black text-black">
-                        {order.tableNumber ? `MEJA ${order.tableNumber}` : 'TAKEAWAY'}
+                        {order.tableNumber ? `MEJA ${order.tableNumber}` : 'TAKEAWAY'}{order.customerName ? ` (${order.customerName})` : ''}
                       </div>
                     </div>
                     <div className="text-right">
@@ -406,13 +420,20 @@ export const KitchenDisplayPage = () => {
                   {/* Items list */}
                   <div className="border-t border-b border-neutral-100 py-2.5 my-2.5 space-y-1.5">
                     {order.items?.map((item, idx) => (
-                      <div key={idx} className="flex justify-between items-start text-xs">
-                        <span className="font-bold text-neutral-800">
-                          <span className="inline-block w-5 font-black text-emerald-600">
-                            {item.quantity}x
-                          </span>{' '}
-                          {item.menuName}
-                        </span>
+                      <div key={idx} className="space-y-0.5">
+                        <div className="flex justify-between items-start text-xs">
+                          <span className="font-bold text-neutral-800">
+                            <span className="inline-block w-5 font-black text-emerald-600">
+                              {item.quantity}x
+                            </span>{' '}
+                            {item.menuName}
+                          </span>
+                        </div>
+                        {item.note && (
+                          <p className="text-[10px] text-emerald-800 font-semibold italic pl-5">
+                            * {item.note}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>

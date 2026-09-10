@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Grid, Plus, Users, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { tableService } from '../../services/tableService';
+import { orderService } from '../../services/orderService';
 import { useAuth } from '../../context/AuthContext';
 import { useOrder } from '../../context/OrderContext';
 import { useToast } from '../../context/ToastContext';
@@ -19,6 +20,7 @@ export const TableListPage = () => {
   const { success, error } = useToast();
 
   const [tables, setTables] = useState([]);
+  const [activeOrders, setActiveOrders] = useState([]);
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,9 +42,18 @@ export const TableListPage = () => {
   const fetchTables = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await tableService.getAll(selectedStatusFilter !== 'all' ? selectedStatusFilter : '');
-      if (res.success && res.data) {
-        setTables(res.data);
+      const [tableRes, orderRes] = await Promise.all([
+        tableService.getAll(selectedStatusFilter !== 'all' ? selectedStatusFilter : ''),
+        orderService.getAll({ pageSize: 100 }),
+      ]);
+      if (tableRes.success && tableRes.data) {
+        setTables(tableRes.data);
+      }
+      if (orderRes.success && orderRes.data?.items) {
+        const active = orderRes.data.items.filter((o) =>
+          ['Pending', 'Preparing', 'Ready'].includes(o.status)
+        );
+        setActiveOrders(active);
       }
     } catch (err) {
       console.error('Error fetching tables:', err);
@@ -228,18 +239,25 @@ export const TableListPage = () => {
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {tables.map((table) => (
-            <TableCard
-              key={table.id}
-              table={table}
-              isAdmin={isAdmin}
-              onSelectStatus={(t) => setStatusModalTable(t)}
-              onViewQr={(t) => setQrModalTable(t)}
-              onCreateOrder={handleCreateOrderForTable}
-              onEdit={handleOpenEditTable}
-              onDelete={(t) => setTableToDelete(t)}
-            />
-          ))}
+          {tables.map((table) => {
+            const tableActiveOrder = activeOrders.find(
+              (o) => (o.tableId === table.id || o.tableNumber === table.number)
+            );
+            return (
+              <TableCard
+                key={table.id}
+                table={table}
+                activeOrder={tableActiveOrder}
+                isAdmin={isAdmin}
+                onSelectStatus={(t) => setStatusModalTable(t)}
+                onViewQr={(t) => setQrModalTable(t)}
+                onViewOrder={(ord) => navigate(`/orders/${ord.id}`)}
+                onCreateOrder={handleCreateOrderForTable}
+                onEdit={handleOpenEditTable}
+                onDelete={(t) => setTableToDelete(t)}
+              />
+            );
+          })}
         </div>
       )}
 
