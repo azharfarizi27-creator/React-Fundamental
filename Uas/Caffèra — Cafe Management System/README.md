@@ -249,31 +249,26 @@ VITE_API_URL=http://localhost:5066/api
 ## h. 🖼️ Screenshot Tampilan Aplikasi
 
 ### 1. Halaman Login & Akses Pemesanan Mandiri Meja
-*Tampilan autentikasi staf dengan pembagian role serta menu cepat pemesanan mandiri tamu meja tanpa login:*  
-- Input kredensial staf (*Email & Password*)
-- Pilihan nomor meja untuk akses cepat *Customer Self-Order*
+*Tampilan autentikasi staf (Admin, Cashier, Kitchen) serta menu cepat pemesanan mandiri tamu meja tanpa login:*  
+![Halaman Login & Self-Order](screenshots/1-login-page.png)
 
 ---
 
-### 2. Dashboard Eksekutif & Analytics
-*Dashboard manajemen real-time menampilkan omzet harian, total pesanan, grafik tren penjualan 7 hari, dan daftar menu terlaris:*  
-- **Metrik KPI:** Pendapatan Hari Ini, Total Pesanan, Menu Aktif, Status Meja.
-- **Grafik Mingguan:** Tren omzet pendapatan per hari.
-- **Top Best-Sellers:** Ranking menu favorit pelanggan.
+### 2. Dashboard Eksekutif Admin (KPI Omzet & Analytics)
+*Tampilan dashboard real-time yang memuat ringkasan omzet harian, total order, grafik tren omzet 7 hari, dan ranking menu terlaris:*  
+![Dashboard Admin](screenshots/2-dashboard-admin.png)
 
 ---
 
-### 3. Kitchen Display System (KDS)
-*Layar pemantauan antrean masak pesanan khusus tim dapur & barista dengan status dinamis dan notifikasi suara:*  
-- **Kolom 1:** Pesanan Baru Masuk (*Pending*)
-- **Kolom 2:** Pesanan Sedang Dimasak (*Cooking*)
-- **Kolom 3:** Pesanan Siap Disajikan (*Ready*)
-- **Fitur Audio:** Notifikasi suara saat order baru masuk.
+### 3. Dashboard Operasional Staff & Pintasan Kasir (POS)
+*Tampilan sambutan staf aktif dengan metrik ketersediaan meja, jumlah katalog menu, dan tombol cepat pembuatan pesanan POS:*  
+![Dashboard Staff](screenshots/3-dashboard-staff.png)
 
 ---
 
-### 4. Smart POS & Pemesanan Mandiri QR Meja
-*Tampilan antarmuka kasir cepat dengan kalkulasi pajak otomatis, diskon menu, pencarian instan, dan cetak struk pembayaran digital.*
+### 4. Kitchen Display System (KDS) Antrean Dapur
+*Tampilan layar dapur real-time untuk koki & barista dengan 3 kolom status antrean masakan (Baru Masuk, Sedang Dimasak, Siap Disajikan) dan notifikasi audio:*  
+![Kitchen Display System](screenshots/4-kitchen-display-system.png)
 
 ---
 
