@@ -250,7 +250,8 @@ VITE_API_URL=http://localhost:5066/api
 
 ### 1. Halaman Login & Akses Pemesanan Mandiri Meja
 *Tampilan autentikasi staf dengan pembagian role serta menu cepat pemesanan mandiri tamu meja tanpa login:*  
-![Halaman Login Caffera](https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200&auto=format&fit=crop&q=80)
+- Input kredensial staf (*Email & Password*)
+- Pilihan nomor meja untuk akses cepat *Customer Self-Order*
 
 ---
 
@@ -267,6 +268,7 @@ VITE_API_URL=http://localhost:5066/api
 - **Kolom 1:** Pesanan Baru Masuk (*Pending*)
 - **Kolom 2:** Pesanan Sedang Dimasak (*Cooking*)
 - **Kolom 3:** Pesanan Siap Disajikan (*Ready*)
+- **Fitur Audio:** Notifikasi suara saat order baru masuk.
 
 ---
 
