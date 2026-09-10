@@ -9,7 +9,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { orderService } from '../../services/orderService';
-import { formatRupiah } from '../../utils/formatters';
+import { formatRupiah, parseSafeDate } from '../../utils/formatters';
 
 export const KitchenDisplayPage = () => {
   const [orders, setOrders] = useState([]);
@@ -102,10 +102,21 @@ export const KitchenDisplayPage = () => {
 
   // Helper for elapsed time
   const getElapsedMinutes = (dateString) => {
-    const created = new Date(dateString);
-    const diffMs = currentTime - created;
+    if (!dateString) return '< 1 mnt';
+    const created = parseSafeDate(dateString);
+    let diffMs = currentTime.getTime() - created.getTime();
+
+    // If slight negative skew or clock desync, clamp to 0
+    if (diffMs < 0) {
+      diffMs = 0;
+    }
+
     const diffMins = Math.floor(diffMs / 60000);
-    return diffMins < 1 ? '< 1 mnt' : `${diffMins} mnt lalu`;
+    if (diffMins < 1) return '< 1 mnt';
+    if (diffMins < 60) return `${diffMins} mnt lalu`;
+    const diffHours = Math.floor(diffMins / 60);
+    const remMins = diffMins % 60;
+    return `${diffHours} jam ${remMins} mnt lalu`;
   };
 
   const filteredOrders = orders.filter((o) => {
