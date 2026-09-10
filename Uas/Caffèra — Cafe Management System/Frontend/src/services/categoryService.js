@@ -8,6 +8,9 @@ export const categoryService = {
     try {
       const response = await api.get('/categories', { params: { search } });
       if (response.data && response.data.success) {
+        if (response.data.data && !search) {
+          setStorageData(STORAGE_KEYS.CATEGORIES, response.data.data);
+        }
         return response.data;
       }
     } catch (err) {

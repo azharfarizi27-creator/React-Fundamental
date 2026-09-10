@@ -170,6 +170,8 @@ export const OrderProvider = ({ children }) => {
         cashChange: paymentDetails.cashChange || undefined,
         items: cartItems.map((item) => ({
           menuId: item.menuId,
+          menuName: item.name,
+          name: item.name,
           quantity: item.quantity,
           price: item.price,
           note: item.note,

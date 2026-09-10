@@ -8,6 +8,9 @@ export const tableService = {
     try {
       const response = await api.get('/tables', { params: { status } });
       if (response.data && response.data.success) {
+        if (response.data.data && !status) {
+          setStorageData(STORAGE_KEYS.TABLES, response.data.data);
+        }
         return response.data;
       }
     } catch (err) {

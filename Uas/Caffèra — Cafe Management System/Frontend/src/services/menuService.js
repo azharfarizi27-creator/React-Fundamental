@@ -8,6 +8,9 @@ export const menuService = {
     try {
       const response = await api.get('/menus', { params });
       if (response.data && response.data.success) {
+        if (response.data.data?.items && (!params.search && (!params.categoryId || params.categoryId === 'all'))) {
+          setStorageData(STORAGE_KEYS.MENUS, response.data.data.items);
+        }
         return response.data;
       }
     } catch (err) {

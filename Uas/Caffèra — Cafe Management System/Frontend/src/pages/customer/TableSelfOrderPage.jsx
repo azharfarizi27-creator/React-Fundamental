@@ -121,6 +121,8 @@ export const TableSelfOrderPage = () => {
         customerName: customerName || `Tamu Meja #${tableNumber}`,
         items: cart.map((item) => ({
           menuId: item.menuId,
+          menuName: item.name,
+          name: item.name,
           quantity: item.quantity,
           note: item.note,
           price: item.price,

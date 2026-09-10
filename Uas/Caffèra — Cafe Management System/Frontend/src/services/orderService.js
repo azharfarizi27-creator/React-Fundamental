@@ -144,7 +144,8 @@ export const orderService = {
     let calculatedTotal = 0;
     const orderItems = (dto.items || []).map((item, idx) => {
       const menu = menus.find((m) => m.id === Number(item.menuId));
-      const price = menu ? menu.price : item.price || 0;
+      const menuName = item.menuName || item.name || (menu ? menu.name : 'Unknown Item');
+      const price = item.price !== undefined ? Number(item.price) : (menu ? menu.price : 0);
       const quantity = Number(item.quantity) || 1;
       const subtotal = price * quantity;
       calculatedTotal += subtotal;
@@ -153,7 +154,7 @@ export const orderService = {
         id: idx + 1,
         orderId: newId,
         menuId: Number(item.menuId),
-        menuName: menu ? menu.name : item.name || 'Unknown Item',
+        menuName,
         quantity,
         price,
         subtotal,
